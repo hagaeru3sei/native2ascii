@@ -1,0 +1,7 @@
+.*
+*.log
+!.gitignore
+!.babelrc
+node_modules
+dist
+var

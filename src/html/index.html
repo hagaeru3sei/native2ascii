@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Hello, World.</title>
+<script type="text/javascript" src="./js/main.js"></script>
+<style type="text/css">
+html body {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+h1 {
+  padding: 10px;
+}
+#header {
+  height : 120px;
+  background-color: #666666;
+  color: #efefef;
+}
+#message {
+  padding-left: 10px;
+}
+#contents {
+  margin-bottom: 60px;
+}
+#footer {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-flow: wrap;
+  flex-flow: wrap;
+  -webkit-justify-content: center;
+  justify-content: center;
+  background-color: #666666;
+  color: #efefef;
+   position: fixed;
+  bottom: 0;
+  height: 60px;
+  width: 100%;
+  text-align: center;
+}
+#footer > p {
+  vertical-align: middle;
+}
+.t-row {
+  display: -webkit-flex;
+  display: flex;
+}
+.t-row:hover {
+  background-color: #eeeecc;
+  color: #336633;
+}
+.cell {
+  -webkit-justify-content: row;
+  justify-content:         row;
+  height: 20px;
+  padding: 2px;
+}
+.idx { width: 40px; }
+.desc { width: 240px; }
+.key { width: 560px; }
+.value { width: 100%; }
+.odd {
+  background-color: #fafafa;
+}
+.even {
+  background-color: #efefef;
+}
+div.t-header {
+  background-color: #cdcdcd;
+  color: #666666;
+}
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>native2ascii</h1>
+  <div id="message">{{ message }}</div>
+</div>
+<div id="contents">
+  <div class="t-row t-header">
+    <div class="cell idx">&nbsp;</div>
+    <div class="cell key">KEY</div>
+    <div class="cell value">VALUE</div>
+    <div class="cell desc">DESCRIPTION</div>
+  </div>
+  <form>
+    <div class="t-row">
+      <div class="cell idx">&nbsp;</div>
+      <div class="cell key"><input v-model.trim="key" type="text"/></div>
+      <div class="cell value"><input v-model.trim="value" type="text"></div>
+      <div class="cell desc"><input v-model.trim="description" type="text"></div>
+      <div class="cell"><button @submit.prevent="addNewRecord">Add</button></div>
+    </div>
+    <!-- TODO: change component -->
+    <div
+      v-for="(item, index) in items"
+      v-bind:item="item"
+      v-bind:index="index"
+      v-bind:key="item.id"
+      v-bind:class="{ odd: index%2!=0, even: index%2==0 }"
+      class="t-row"
+    >
+      <div class="cell idx">{{ index }}</div>
+      <div class="cell key">{{ item.key }}</div>
+      <div class="cell value">{{ item.value }}</div>
+      <div class="cell desc">{{ item.description }}</div>
+    </div>
+    <!-- TODO: change component end -->
+  </form>
+</div>
+<div id="footer">
+  <p></p>
+</div>
+</body>
+</html>
