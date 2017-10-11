@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja"
+      xmlns:v-bind="http://www.w3.org/1999/xhtml"
+      xmlns:v-on="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="UTF-8">
-<title>Hello, World.</title>
+<title>native2ascii</title>
 <script type="text/javascript" src="./js/main.js"></script>
 <style type="text/css">
 html body {
@@ -19,7 +21,7 @@ h1 {
   padding: 10px;
 }
 #header {
-  height : 120px;
+  height : 100px;
   background-color: #666666;
   color: #efefef;
 }
@@ -27,7 +29,16 @@ h1 {
   padding-left: 10px;
 }
 #contents {
-  margin-bottom: 60px;
+  padding: 20px;
+}
+#newRecordForm {
+  display: none;
+}
+#listView {
+  margin: 0 auto;
+  border: 1px solid #666;
+  width: 80%
+
 }
 #footer {
   display: -webkit-flex;
@@ -83,36 +94,46 @@ div.t-header {
   <div id="message">{{ message }}</div>
 </div>
 <div id="contents">
-  <div class="t-row t-header">
-    <div class="cell idx">&nbsp;</div>
-    <div class="cell key">KEY</div>
-    <div class="cell value">VALUE</div>
-    <div class="cell desc">DESCRIPTION</div>
+
+  <div id="newRecordForm">
+    <form action="http://localhost:8800/api" method="post">
+      <div id="newRecord" class="t-row">
+        <div class="cell idx">&nbsp;</div>
+        <div class="cell key"><input v-model.trim="key" type="text"/></div>
+        <div class="cell value"><input v-model.trim="value" type="text"></div>
+        <div class="cell desc"><input v-model.trim="description" type="text"></div>
+        <div class="cell"><button  v-on:click="addNewRecord">Add</button></div>
+      </div>
+    </form>
   </div>
-  <form>
-    <div class="t-row">
+
+  <div id="listView">
+    <div class="t-row t-header">
       <div class="cell idx">&nbsp;</div>
-      <div class="cell key"><input v-model.trim="key" type="text"/></div>
-      <div class="cell value"><input v-model.trim="value" type="text"></div>
-      <div class="cell desc"><input v-model.trim="description" type="text"></div>
-      <div class="cell"><button @submit.prevent="addNewRecord">Add</button></div>
+      <div class="cell language">&nbsp;</div>
+      <div class="cell key">KEY</div>
+      <div class="cell value">VALUE</div>
+      <div class="cell desc">DESCRIPTION</div>
+      <div class="cell updated">UPDATED</div>
     </div>
-    <!-- TODO: change component -->
-    <div
-      v-for="(item, index) in items"
-      v-bind:item="item"
-      v-bind:index="index"
-      v-bind:key="item.id"
-      v-bind:class="{ odd: index%2!=0, even: index%2==0 }"
-      class="t-row"
-    >
-      <div class="cell idx">{{ index }}</div>
-      <div class="cell key">{{ item.key }}</div>
-      <div class="cell value">{{ item.value }}</div>
-      <div class="cell desc">{{ item.description }}</div>
-    </div>
-    <!-- TODO: change component end -->
-  </form>
+    <form>
+      <!-- TODO: change component -->
+      <div
+        v-for="(item, index) in items"
+        v-bind:item="item"
+        v-bind:index="index"
+        v-bind:key="item.id"
+        v-bind:class="{ odd: index%2!=0, even: index%2==0 }"
+        class="t-row"
+      >
+        <div class="cell idx">{{ item.id }}</div>
+        <div class="cell key">{{ item.key }}</div>
+        <div class="cell value">{{ item.value }}</div>
+        <div class="cell desc">{{ item.description }}</div>
+      </div>
+      <!-- TODO: change component end -->
+    </form>
+  </div>
 </div>
 <div id="footer">
   <p></p>

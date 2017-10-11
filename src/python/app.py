@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import time
 import json
 import sqlite3
-from collections import OrderedDict
-from bottle import Bottle, HTTPResponse
+import logging
+from configparser import ConfigParser
+from bottle import Bottle, HTTPResponse, request
 
+# TODO: refactoring
+
+config = ConfigParser()
+config.read('src/res/default.ini')
+logging.basicConfig(
+    level=eval(config['logging']['level']),
+    format=config['logging']['format'],
+    filename=config['logging']['path'])
+logger = logging.getLogger(__name__)
 port = 8800
 host = 'localhost'
 app = Bottle()
 
-## TODO: refactoring
 
 class HttpResponse(object):
     """
@@ -18,11 +28,12 @@ class HttpResponse(object):
         self.response_body = response_body
         self.status = status
 
-    def response(self):
-        response = HTTPResponse(status=200, body=self.response_body)
+    def response(self) -> HTTPResponse:
+        response = HTTPResponse(status=self.status, body=self.response_body)
         response.set_header('Content-type', 'application/json')
         response.set_header('Access-Control-Allow-Origin', '*')
         return response
+
 
 class Strings(object):
     """
@@ -35,18 +46,16 @@ class Strings(object):
         self.description = row[4]
         self.updated = row[5]
 
-    def to_dict(self):
+    def to_dict(self) -> {}:
         """class Strings to dict converter
         :return: dict
         """
-        r = {}
-        r['id'] = self.id
-        r['language'] = self.language
-        r['key'] = self.key
-        r['value'] = self.value
-        r['description'] = self.description
-        r['updated'] = self.updated
-        return r
+        return {'id': self.id,
+                'language': self.language,
+                'key': self.key,
+                'value': self.value,
+                'description': self.description,
+                'updated': self.updated}
 
 
 @app.route('/api')
@@ -66,12 +75,14 @@ def main():
     """
     records = []
 
-    conn = sqlite3.connect('var/db/native2ascii.db')
+    logger.debug("GET /api")
+
+    conn = sqlite3.connect('var/db/native2ascii.db', timeout=3)
     cur = conn.cursor()
     cur.execute('SELECT * FROM strings')
     row = cur.fetchone()
     while row:
-        records.append(Strings(touple(row)).to_dict())
+        records.append(Strings(tuple(row)).to_dict())
         row = cur.fetchone()
     cur.close()
     conn.close()
@@ -80,6 +91,7 @@ def main():
     status = 200
 
     return HttpResponse(body, status).response()
+
 
 @app.route('/api', method='POST')
 def update():
@@ -93,16 +105,20 @@ def update():
     updated = int(time.time())
 
     # error check
-    if len(language) == 0: err += 1
-    if len(key) == 0: err += 1
-    if len(value) == 0: err += 1
+    if len(language) == 0:
+        err += 1
+    if len(key) == 0:
+        err += 1
+    if len(value) == 0:
+        err += 1
     if err > 0:
+        logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
         result = '{"result":"NG"}'
         status = 400
         return HttpResponse(result, status).response()
 
     # save database
-    conn = sqlite3.connect('var/db/native2ascii.db')
+    conn = sqlite3.connect('var/db/native2ascii.db', timeout=1)
     cur = conn.cursor()
     sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
     cur.execute(sql, (language, key, value, description, updated))
@@ -112,8 +128,8 @@ def update():
     
     body = '{"response":"OK"}'
     status = 200
+    logger.info("Saved record.")
     return HttpResponse(body, status).response()
 
 
 app.run(host=host, port=port, debug=True)
-

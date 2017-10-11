@@ -4,9 +4,6 @@ import axios from 'axios'
 const msg = "Convert native2ascii for java apps"
 const endpoint = 'http://localhost:8800/api'
 
-/**
- *
- */
 export function get(url) {
   let result = [];
   axios.get(url).then(response => {
@@ -17,18 +14,12 @@ export function get(url) {
   return result
 }
 
-export function post(url, json) {
-  axios.post(url, json).then(response => {
-    console.log(response)
-  })
-}
-
 const items = get(endpoint)
 console.log(items)
 
 window.addEventListener('load', () => {
-
-  const app = new Vue({
+  // attach message
+  new Vue({
     data : {
       message: msg
     },
@@ -36,31 +27,36 @@ window.addEventListener('load', () => {
     }
   }).$mount('#message')
 
+  // show list view
   new Vue({
     el : '#contents',
     data : {
       items : items
     }
   })
+}, false)
 
-  new Vue({
-    data: {
-	  language: '',
-	  key: '',
-	  value: '',
-	  description: ''
-	},
-	methods: {
-	  addNewRecord: () => {
-	    post(endpoint, {
-		  // TODO: implements
-	      language: 'ja',
-	      key: 'key1',
-	      value: 'value1',
-	      description: 'description1'
-	    })
-	  }
-	}
-  })
-
+// add new record
+new Vue({
+  el: '#newRecord',
+  data: {
+    language: '',
+    key: '',
+    value: '',
+    description: ''
+  },
+  methods: {
+    addNewRecord: () => {
+      console.log("Called addNewRecord.")
+      axios.post(endpoint, {
+        language: this.language,
+        key: this.key,
+        value: this.value,
+        description: this.description
+      }).then(response =>
+        console.log(response)
+      )
+    }
+  }
 })
+
