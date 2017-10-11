@@ -1,8 +1,11 @@
 import Vue from 'vue/dist/vue.js'
 import axios from 'axios'
+import Vuetable from 'vuetable-2/src/components/Vuetable.vue';
+Vue.use(Vuetable)
 
 const msg = "Convert native2ascii for java apps"
 const endpoint = 'http://localhost:8800/api'
+
 
 export function get(url) {
   let result = [];

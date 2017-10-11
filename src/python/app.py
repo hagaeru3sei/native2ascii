@@ -71,7 +71,7 @@ class StringConverter:
         return bytes(args, 'utf-8').decode('unicode_escape')
 
     @staticmethod
-    def native2ascii(args):
+    def native2ascii(args) -> str:
         """"""
         logger.debug("native2ascii")
         return bytes(args, 'unicode_escape').decode('utf-8')
