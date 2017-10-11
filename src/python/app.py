@@ -20,6 +20,9 @@ port = 8800
 host = 'localhost'
 app = Bottle()
 
+conn = sqlite3.connect('var/db/native2ascii.db', timeout=5)
+cur = conn.cursor()
+
 
 class HttpResponse(object):
     """
@@ -53,9 +56,25 @@ class Strings(object):
         return {'id': self.id,
                 'language': self.language,
                 'key': self.key,
-                'value': self.value,
+                'value': StringConverter.ascii2native(self.value),
                 'description': self.description,
                 'updated': self.updated}
+
+
+class StringConverter:
+    """
+    """
+    @staticmethod
+    def ascii2native(args) -> str:
+        """"""
+        logger.debug("ascii2native")
+        return bytes(args, 'utf-8').decode('unicode_escape')
+
+    @staticmethod
+    def native2ascii(args):
+        """"""
+        logger.debug("native2ascii")
+        return bytes(args, 'unicode_escape').decode('utf-8')
 
 
 @app.route('/api')
@@ -77,15 +96,11 @@ def main():
 
     logger.debug("GET /api")
 
-    conn = sqlite3.connect('var/db/native2ascii.db', timeout=3)
-    cur = conn.cursor()
     cur.execute('SELECT * FROM strings')
     row = cur.fetchone()
     while row:
         records.append(Strings(tuple(row)).to_dict())
         row = cur.fetchone()
-    cur.close()
-    conn.close()
 
     body = json.dumps(records)
     status = 200
@@ -118,14 +133,11 @@ def update():
         return HttpResponse(result, status).response()
 
     # save database
-    conn = sqlite3.connect('var/db/native2ascii.db', timeout=1)
-    cur = conn.cursor()
+    cur.executescript("BEGIN TRANSACTION")
     sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
     cur.execute(sql, (language, key, value, description, updated))
     conn.commit()
-    cur.close()
-    conn.close()
-    
+
     body = '{"response":"OK"}'
     status = 200
     logger.info("Saved record.")
