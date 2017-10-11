@@ -6,8 +6,9 @@
   "scripts": {
     "build": "node node_modules/gulp/bin/gulp.js build",
     "test": "node node_modules/karma/bin/karma start karma.conf.js",
-    "server": "cd dist; nohup python3 -m http.server 8000",
-    "api": "./init.sh; nohup ./src/python/app.py > logs/api.log 2>&1 &"
+    "www": "cd dist; nohup python3 -m http.server 8000",
+    "start": "./init.sh; nohup ./src/python/app.py > logs/api.log 2>&1 &",
+    "stop": "ps aux | grep [p]ython3 | awk '{ print $2 }' | xargs kill"
   },
   "author": "Nobuaki Mochizuki",
   "license": "ISC",
@@ -27,7 +28,8 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "vinyl-transform": "^1.0.0",
-    "vue": "^2.4.4"
+    "vue": "^2.4.4",
+    "vuetable": "^1.5.12"
   },
   "browserify": {
     "transform": [
