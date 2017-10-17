@@ -10,14 +10,14 @@ npm run build
 ### Running test app
 
 ```
-npm run server
+npm run www
 ```
 access to http://localhost:8000
 
 ### Start API
 
 ```
-npm run api
+npm start
 ```
 
 
