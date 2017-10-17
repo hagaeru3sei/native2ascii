@@ -24,6 +24,22 @@ conn = sqlite3.connect('var/db/native2ascii.db', timeout=5)
 cur = conn.cursor()
 
 
+class HttpStatus:
+    # Success
+    OK = 200
+
+    # Redirection
+    NotModified = 304
+
+    # Client Error
+    BadRequest = 400
+    Forbidden = 403
+    NotFound = 404
+
+    # Server Error
+    InternalServerError = 500
+
+
 class HttpResponse(object):
     """
     """
@@ -117,13 +133,12 @@ def main() -> HTTPResponse:
         row = cur.fetchone()
 
     body = json.dumps(records)
-    status = 200
 
-    return HttpResponse(body, status).response()
+    return HttpResponse(body, HttpStatus.OK).response()
 
 
 @app.route('/api', method='POST')
-def update():
+def update() -> HTTPResponse:
     """
     """
     err = 0
@@ -143,8 +158,7 @@ def update():
     if err > 0:
         logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
         result = '{"result":"NG"}'
-        status = 400
-        return HttpResponse(result, status).response()
+        return HttpResponse(result, HttpStatus.BadRequest).response()
 
     # save database
     cur.executescript("BEGIN TRANSACTION")
@@ -153,9 +167,8 @@ def update():
     conn.commit()
 
     body = '{"response":"OK"}'
-    status = 200
     logger.info("Saved record.")
-    return HttpResponse(body, status).response()
+    return HttpResponse(body, HttpStatus.OK).response()
 
 
 app.run(host=host, port=port, debug=True)

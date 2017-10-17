@@ -1,16 +1,15 @@
 <!doctype html>
-<html lang="ja"
-      xmlns:v-bind="http://www.w3.org/1999/xhtml"
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml"
       xmlns:v-on="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="UTF-8">
 <title>native2ascii</title>
-<script type="text/javascript" src="./js/main.js"></script>
 <style type="text/css">
 html body {
   margin: 0;
   padding: 0;
   border: 0;
+  font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif, Osaka;
 }
 h1, h2, h3, h4, h5 {
   margin: 0;
@@ -20,26 +19,48 @@ h1, h2, h3, h4, h5 {
 h1 {
   padding: 10px;
 }
+
 #header {
   height : 100px;
   background-color: #666666;
   color: #efefef;
 }
+
 #message {
   padding-left: 10px;
 }
+
 #contents {
   padding: 20px;
 }
-#newRecordForm {
-  display: none;
+
+#newRecordButton {
+  margin-bottom: 20px;
+  padding: 10px;
+  width: 100%;
+  background: #666666;
+  color: #FFFFFF;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  font-size: 24px;
 }
+
+#newRecordForm {
+  margin: 0 auto;
+  /* display: none; */
+}
+
+#newRecords {
+  display: -webkit-box;
+  display: -moz-box;
+}
+
 #listView {
   margin: 0 auto;
   border: 1px solid #666;
   width: 80%
-
 }
+
 #footer {
   display: -webkit-flex;
   display: flex;
@@ -49,7 +70,7 @@ h1 {
   justify-content: center;
   background-color: #666666;
   color: #efefef;
-   position: fixed;
+  position: fixed;
   bottom: 0;
   height: 60px;
   width: 100%;
@@ -58,6 +79,7 @@ h1 {
 #footer > p {
   vertical-align: middle;
 }
+
 .t-row {
   display: -webkit-flex;
   display: flex;
@@ -86,6 +108,9 @@ div.t-header {
   background-color: #cdcdcd;
   color: #666666;
 }
+span.name {
+  width: 200px;
+}
 </style>
 </head>
 <body>
@@ -93,19 +118,27 @@ div.t-header {
   <h1>native2ascii</h1>
   <div id="message">{{ message }}</div>
 </div>
+
 <div id="contents">
 
-  <div id="newRecordForm">
-    <form action="http://localhost:8800/api" method="post">
-      <div id="newRecord" class="t-row">
-        <div class="cell idx">&nbsp;</div>
-        <div class="cell key"><input v-model.trim="key" type="text"/></div>
-        <div class="cell value"><input v-model.trim="value" type="text"></div>
-        <div class="cell desc"><input v-model.trim="description" type="text"></div>
-        <div class="cell"><button  v-on:click="addNewRecord">Add</button></div>
+  <button id="newRecordButton"
+          type="button">Add new record</button>
+
+  <form action="http://localhost:8800/api" method="post">
+    <div id="newRecordForm">
+      <div v-for="lang in languages"
+           v-bind:lang="lang"
+           id="newRecords">
+        <div id="lang">
+          <h3>{{ lang }}</h3>
+          <div><span class="name">key:</span><input v-model.trim="key" type="text"/></div>
+          <div><span class="name">value:</span><input v-model.trim="value" type="text"></div>
+          <div><span class="name">description:</span><input v-model.trim="description" type="text"></div>
+        </div>
       </div>
-    </form>
-  </div>
+      <div class="cell"><button  v-on:click="addNewRecord">Add</button></div>
+    </div>
+  </form>
 
   <div id="listView">
     <div class="t-row t-header">
@@ -138,5 +171,6 @@ div.t-header {
 <div id="footer">
   <p></p>
 </div>
+<script type="text/javascript" src="./js/main.js"></script>
 </body>
 </html>

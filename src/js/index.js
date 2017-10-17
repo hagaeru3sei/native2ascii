@@ -1,47 +1,58 @@
 import Vue from 'vue/dist/vue.js'
 import axios from 'axios'
-import Vuetable from 'vuetable-2/src/components/Vuetable.vue';
+import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
 Vue.use(Vuetable)
 
-const msg = "Convert native2ascii for java apps"
-const endpoint = 'http://localhost:8800/api'
+const msg = "Convert native2ascii for java apps";
+const languageEndpoint = 'http://localhost:8800/lang';
+const endpoint = 'http://localhost:8800/api';
 
+// attach message
+new Vue({
+  data : {
+    message: msg
+  }
+}).$mount('#message');
 
-export function get(url) {
-  let result = [];
-  axios.get(url).then(response => {
-    [].slice.call(response.data).forEach(element => {
-      result.push(element)
-    })
-  })
-  return result
-}
-
-const items = get(endpoint)
-console.log(items)
-
-window.addEventListener('load', () => {
-  // attach message
-  new Vue({
-    data : {
-      message: msg
-    },
-    created : () => {
+// Set languages
+new Vue({
+  el: '#newRecordForm',
+  data: {
+    languages: []
+  },
+  mounted() {
+    this.get()
+  },
+  methods: {
+    get: function() {
+      axios.get(languageEndpoint).then(res => {
+        console.log(res);
+        this.languages = res.data.languages
+      });
     }
-  }).$mount('#message')
+  }
+});
 
-  // show list view
-  new Vue({
-    el : '#contents',
-    data : {
-      items : items
+// show list view
+new Vue({
+  el : '#listView',
+  data : {
+    items: []
+  },
+  methods: {
+    get: function () {
+      axios.get(endpoint).then(response => {
+        console.log(endpoint, response);
+        [].slice.call(response.data).forEach(element => {
+          this.items.push(element)
+        })
+      });
     }
-  })
-}, false)
+  }
+});
 
 // add new record
 new Vue({
-  el: '#newRecord',
   data: {
     language: '',
     key: '',
@@ -49,8 +60,8 @@ new Vue({
     description: ''
   },
   methods: {
-    addNewRecord: () => {
-      console.log("Called addNewRecord.")
+    addNewRecord: function () {
+      console.log("Called addNewRecord.");
       axios.post(endpoint, {
         language: this.language,
         key: this.key,
@@ -61,5 +72,5 @@ new Vue({
       )
     }
   }
-})
+});
 
