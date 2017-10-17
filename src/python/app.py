@@ -77,8 +77,22 @@ class StringConverter:
         return bytes(args, 'unicode_escape').decode('utf-8')
 
 
+@app.route('/lang')
+def lang() -> HTTPResponse:
+    """Return languages for this application.
+    Please check the res/default.ini [languages] section.
+    example return value:
+      { 'languages': ['en', 'ja'] }
+    :return: HTTPResponse
+    """
+    values = config['languages']['values']
+    languages = values.split(',')
+    body = json.dumps({'languages': languages})
+    return HttpResponse(body, HttpStatus.OK).response()
+
+
 @app.route('/api')
-def main():
+def main() -> HTTPResponse:
     """Records example:
     [
       {
