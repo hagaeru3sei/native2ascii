@@ -142,31 +142,51 @@ def update() -> HTTPResponse:
     """
     """
     err = 0
-    language = request.forms.get('language')
-    key = request.forms.get('key')
-    value = request.forms.get('value')
-    description = request.forms.get('description')
-    updated = int(time.time())
+    logger.debug(request.body)
+    json_string = request.body.getvalue().decode('utf-8')
+    logger.debug(json_string)
 
-    # error check
-    if len(language) == 0:
-        err += 1
-    if len(key) == 0:
-        err += 1
-    if len(value) == 0:
-        err += 1
-    if err > 0:
-        logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
-        result = '{"result":"NG"}'
-        return HttpResponse(result, HttpStatus.BadRequest).response()
+    try:
+        data = json.loads(json_string)
+    except Exception as e:
+        logger.error(e)
+        return HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response()
 
-    # save database
-    cur.executescript("BEGIN TRANSACTION")
-    sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
-    cur.execute(sql, (language, key, value, description, updated))
-    conn.commit()
+    for lang_code in data.keys():
+        language = lang_code
+        record = data[language]
 
-    body = '{"response":"OK"}'
+        key = record['key']
+        value = record['value']
+        description = record['description']
+        updated = int(time.time())
+
+        # error check
+        if language is None or len(language) == 0:
+            err += 1
+        if key is None or len(key) == 0:
+            err += 1
+        if value is None or len(value) == 0:
+            err += 1
+        if err > 0:
+            logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
+            result = '{"result":"NG"}'
+            return HttpResponse(result, HttpStatus.BadRequest).response()
+
+        if description is None:
+            description = ''
+
+        # save database
+        cur.executescript("BEGIN TRANSACTION")
+        sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
+        cur.execute(sql, (language, key, value, description, updated))
+
+    try:
+        conn.commit()
+    except Exception as e:
+        logger.error(e)
+
+    body = '{"result":"OK"}'
     logger.info("Saved record.")
     return HttpResponse(body, HttpStatus.OK).response()
 
