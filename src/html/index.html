@@ -49,10 +49,13 @@ h1 {
   margin: 0 auto;
   /* display: none; */
 }
-
-#newRecords {
+#newRecordForm .wrapper {
   display: -webkit-box;
   display: -moz-box;
+}
+
+#newRecords {
+  border: 1px #666666 solid;
 }
 
 #listView {
@@ -80,6 +83,9 @@ h1 {
   vertical-align: middle;
 }
 
+.addButton {
+  margin: 10px auto;
+}
 .t-row {
   display: -webkit-flex;
   display: flex;
@@ -124,21 +130,23 @@ span.name {
   <button id="newRecordButton"
           type="button">Add new record</button>
 
-  <form action="http://localhost:8800/api" method="post">
-    <div id="newRecordForm">
-      <div v-for="lang in languages"
-           v-bind:lang="lang"
-           id="newRecords">
-        <div id="lang">
-          <h3>{{ lang }}</h3>
-          <div><span class="name">key:</span><input v-model.trim="key" type="text"/></div>
-          <div><span class="name">value:</span><input v-model.trim="value" type="text"></div>
-          <div><span class="name">description:</span><input v-model.trim="description" type="text"></div>
+  <div id="newRecordForm">
+    <form v-on:submit.prevent>
+      <div class="wrapper">
+        <div v-for="lang in languages"
+             v-bind:lang="lang"
+             id="newRecords">
+          <div :id="lang">
+            <h3>{{ lang }}</h3>
+            <div><span class="name">key:</span><input name="key" type="text"/></div>
+            <div><span class="name">value:</span><input name="value" type="text"></div>
+            <div><span class="name">description:</span><input name="description" type="text"></div>
+          </div>
         </div>
       </div>
-      <div class="cell"><button  v-on:click="addNewRecord">Add</button></div>
-    </div>
-  </form>
+      <div class="addButton"><button  v-on:click="addNewRecord">Add</button></div>
+    </form>
+  </div>
 
   <div id="listView">
     <div class="t-row t-header">
@@ -149,7 +157,7 @@ span.name {
       <div class="cell desc">DESCRIPTION</div>
       <div class="cell updated">UPDATED</div>
     </div>
-    <form>
+    <form v-on:submit.prevent>
       <!-- TODO: change component -->
       <div
         v-for="(item, index) in items"
