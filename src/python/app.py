@@ -22,6 +22,7 @@ app = Bottle()
 
 conn = sqlite3.connect('var/db/native2ascii.db', timeout=5)
 cur = conn.cursor()
+cur.execute('PRAGMA encoding="UTF-8"')
 
 
 class HttpStatus:
@@ -51,6 +52,7 @@ class HttpResponse(object):
         response = HTTPResponse(status=self.status, body=self.response_body)
         response.set_header('Content-type', 'application/json')
         response.set_header('Access-Control-Allow-Origin', '*')
+        response.set_header('Access-Control-Allow-Headers', 'Content-Type')
         return response
 
 
@@ -107,7 +109,7 @@ def lang() -> HTTPResponse:
     return HttpResponse(body, HttpStatus.OK).response()
 
 
-@app.route('/api')
+@app.route('/api', method='GET')
 def main() -> HTTPResponse:
     """Records example:
     [
@@ -137,12 +139,17 @@ def main() -> HTTPResponse:
     return HttpResponse(body, HttpStatus.OK).response()
 
 
+@app.route('/api', method='OPTIONS')
+def check_cors() -> HTTPResponse:
+    return HttpResponse('{}', HttpStatus.OK).response()
+
+
 @app.route('/api', method='POST')
 def update() -> HTTPResponse:
     """
     """
     err = 0
-    logger.debug(request.body)
+    logger.debug(request.body.getvalue())
     json_string = request.body.getvalue().decode('utf-8')
     logger.debug(json_string)
 
@@ -179,7 +186,10 @@ def update() -> HTTPResponse:
         # save database
         cur.executescript("BEGIN TRANSACTION")
         sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
-        cur.execute(sql, (language, key, value, description, updated))
+        try:
+            cur.execute(sql, (language, key, value, description, updated))
+        except Exception as e:
+            logger.error(e)
 
     try:
         conn.commit()
@@ -189,6 +199,17 @@ def update() -> HTTPResponse:
     body = '{"result":"OK"}'
     logger.info("Saved record.")
     return HttpResponse(body, HttpStatus.OK).response()
+
+
+@app.route("/api", method='DELETE')
+def delete() -> HTTPResponse:
+    sql = "DELETE FROM strings"
+    try:
+        conn.execute(sql)
+    except Exception as e:
+        logger.error(e)
+
+    return HttpResponse('{"result":"OK"}', HttpStatus.OK).response()
 
 
 app.run(host=host, port=port, debug=True)

@@ -7,7 +7,6 @@ const msg = "Convert native2ascii for java apps";
 const languageEndpoint = 'http://localhost:8800/lang';
 const endpoint = 'http://localhost:8800/api';
 
-
 // attach message
 new Vue({
   data : {
@@ -36,18 +35,17 @@ new Vue({
      *     },,,
      *   }
      */
-    jsonRequest : {
-      '' : {
-        key: '',
-        value: '',
-        description: ''
-      }
-    }
+    jsonRequest : {}
   },
   mounted: function() {
     this.$nextTick(function () {
       this.get()
     })
+  },
+  computed: {
+    keyName: function (name, lang) {
+      return name + "_" + lang
+    }
   },
   methods: {
     get: function() {
@@ -58,6 +56,7 @@ new Vue({
     },
     addNewRecord: function () {
       console.log("Called addNewRecord.");
+      console.log(this);
       let items = {};
       [].slice.call(Object.keys(this.jsonRequest)).forEach(lang => {
          let item = this.jsonRequest[lang];

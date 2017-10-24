@@ -48,14 +48,11 @@ h1 {
 #newRecordForm {
   margin: 0 auto;
   /* display: none; */
+  border: 1px #666666 solid;
 }
 #newRecordForm .wrapper {
   display: -webkit-box;
   display: -moz-box;
-}
-
-#newRecords {
-  border: 1px #666666 solid;
 }
 
 #listView {
@@ -95,8 +92,8 @@ h1 {
   color: #336633;
 }
 .cell {
-  -webkit-justify-content: row;
-  justify-content:         row;
+  -webkit-justify-content: inherit;
+  justify-content:         inherit;
   height: 20px;
   padding: 2px;
 }
@@ -133,18 +130,39 @@ span.name {
   <div id="newRecordForm">
     <form v-on:submit.prevent>
       <div class="wrapper">
-        <div v-for="lang in languages"
-             v-bind:lang="lang"
-             id="newRecords">
+        <div v-for="(lang, index) in languages"
+             v-bind:name="['key', lang].join('_')"
+             v-bind:value="['value', lang].join('_')"
+             v-bind:description="['description', lang].join('_')"
+             v-bind:data="jsonRequest[lang]={key:'', value:'', description:''}"
+        >
           <div :id="lang">
-            <h3>{{ lang }}</h3>
-            <div><span class="name">key:</span><input name="key" type="text"/></div>
-            <div><span class="name">value:</span><input name="value" type="text"></div>
-            <div><span class="name">description:</span><input name="description" type="text"></div>
+            <h3>Language: {{ lang }}</h3>
+            <div>
+              <span class="name">key:</span>
+              <input :id="['key', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['key'] = $event.target.value"
+                     placeholder="key name"
+                     type="text"/>
+            </div>
+            <div>
+              <span class="name">value:</span>
+              <input :id="['value', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['value'] = $event.target.value"
+                     placeholder="value"
+                     type="text">
+            </div>
+            <div>
+              <span class="name">description:</span>
+              <input :id="['description', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['description'] = $event.target.value"
+                     placeholder="description"
+                     type="text">
+            </div>
           </div>
         </div>
       </div>
-      <div class="addButton"><button  v-on:click="addNewRecord">Add</button></div>
+      <div class="addButton"><button v-on:click="addNewRecord">Add</button></div>
     </form>
   </div>
 
