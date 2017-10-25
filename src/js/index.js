@@ -16,7 +16,7 @@ new Vue({
 
 
 // Set languages
-new Vue({
+const formApp = new Vue({
   el: '#newRecordForm',
   data: {
     /**
@@ -69,14 +69,15 @@ new Vue({
       console.log("JSON string:", JSON.stringify(items));
       axios.post(endpoint, items).then(response => {
         console.log(response)
-      })
+      });
+      this.$emit('update.record', true)
     }
   }
 });
 
 
 // show list view
-new Vue({
+const viewApp = new Vue({
   el : '#listView',
   data : {
     items: []

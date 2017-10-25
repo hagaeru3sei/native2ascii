@@ -22,7 +22,6 @@ app = Bottle()
 
 conn = sqlite3.connect('var/db/native2ascii.db', timeout=5)
 cur = conn.cursor()
-cur.execute('PRAGMA encoding="UTF-8"')
 
 
 class HttpStatus:
@@ -42,18 +41,41 @@ class HttpStatus:
 
 
 class HttpResponse(object):
+    """TODO: refactoring
     """
-    """
+    content_type = 'application/json'
+    response_body = ''
+    headers = {}
+    status = HttpStatus.NotFound
+    http_response = None
+
     def __init__(self, response_body, status):
         self.response_body = response_body
         self.status = status
+        self.set_content_type(self.content_type)
+        self.http_response = HTTPResponse(status=self.status, body=self.response_body)
 
-    def response(self) -> HTTPResponse:
-        response = HTTPResponse(status=self.status, body=self.response_body)
-        response.set_header('Content-type', 'application/json')
-        response.set_header('Access-Control-Allow-Origin', '*')
-        response.set_header('Access-Control-Allow-Headers', 'Content-Type')
-        return response
+    def add_header(self, name, value):
+        self.headers[name] = value
+        return self
+
+    def set_content_type(self, content_type):
+        self.headers['Content-type'] = content_type
+        return self
+
+    def response(self, is_cors=True) -> HTTPResponse:
+        """
+        :param is_cors: boolean
+        :return:
+        """
+        for k in self.headers.keys():
+            self.http_response.set_header(k, self.headers[k])
+        if is_cors:
+            self.http_response.set_header('Access-Control-Allow-Origin', '*')
+            self.http_response.set_header('Access-Control-Allow-Headers', 'Content-Type')
+        logger.debug(self.headers)
+
+        return self.http_response
 
 
 class Strings(object):
@@ -74,7 +96,7 @@ class Strings(object):
         return {'id': self.id,
                 'language': self.language,
                 'key': self.key,
-                'value': StringConverter.ascii2native(self.value),
+                'value': self.value,
                 'description': self.description,
                 'updated': self.updated}
 
@@ -95,6 +117,23 @@ class StringConverter:
         return bytes(args, 'unicode_escape').decode('utf-8')
 
 
+class StringsDao(object):
+
+    table_name = 'strings'
+
+    def __init__(self):
+        pass
+
+    def find_all(self) -> []:
+        records = []
+        cur.execute('SELECT * FROM %s' % self.table_name)
+        row = cur.fetchone()
+        while row:
+            records.append(Strings(tuple(row)))
+            row = cur.fetchone()
+        return records
+
+
 @app.route('/lang')
 def lang() -> HTTPResponse:
     """Return languages for this application.
@@ -106,6 +145,7 @@ def lang() -> HTTPResponse:
     values = config['languages']['values']
     languages = values.split(',')
     body = json.dumps({'languages': languages})
+
     return HttpResponse(body, HttpStatus.OK).response()
 
 
@@ -124,23 +164,50 @@ def main() -> HTTPResponse:
       ,...
     ]
     """
-    records = []
-
     logger.debug("GET /api")
-
+    records = []
     cur.execute('SELECT * FROM strings')
     row = cur.fetchone()
     while row:
         records.append(Strings(tuple(row)).to_dict())
         row = cur.fetchone()
-
     body = json.dumps(records)
 
     return HttpResponse(body, HttpStatus.OK).response()
 
 
+@app.route('/api/dl/<language>', method='GET')
+def download(language) -> HTTPResponse:
+    """Download property file.
+    :return:
+    """
+    languages = config['languages']['values']
+    if language not in languages.split(','):
+        return HttpResponse('', HttpStatus.BadRequest).response()
+
+    records = StringsDao().find_all()
+    lines = []
+    for record in records:
+        if language != record.language:
+            continue
+        k = record.key
+        v = StringConverter.native2ascii(record.value)
+        lines.append(k + '=' + v)
+
+    body = '\n'.join(lines)
+
+    return HttpResponse(body, HttpStatus.OK)\
+        .set_content_type('text/plain')\
+        .add_header('Content-Length', str(len(body)))\
+        .add_header('Content-Disposition', 'attachment; filename=message_%s.properties' % language)\
+        .response()
+
+
 @app.route('/api', method='OPTIONS')
 def check_cors() -> HTTPResponse:
+    """For CORS
+    :return: HTTPResponse
+    """
     return HttpResponse('{}', HttpStatus.OK).response()
 
 
@@ -151,7 +218,7 @@ def update() -> HTTPResponse:
     err = 0
     logger.debug(request.body.getvalue())
     json_string = request.body.getvalue().decode('utf-8')
-    logger.debug(json_string)
+    logger.debug("JSON Request: " + json_string)
 
     try:
         data = json.loads(json_string)
@@ -198,6 +265,7 @@ def update() -> HTTPResponse:
 
     body = '{"result":"OK"}'
     logger.info("Saved record.")
+
     return HttpResponse(body, HttpStatus.OK).response()
 
 

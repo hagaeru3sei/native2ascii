@@ -46,7 +46,7 @@ h1 {
 }
 
 #newRecordForm {
-  margin: 0 auto;
+  margin: 0 auto 20px;
   /* display: none; */
   border: 1px #666666 solid;
 }
@@ -56,7 +56,7 @@ h1 {
 }
 
 #listView {
-  margin: 0 auto;
+  margin: 0 auto 120px;
   border: 1px solid #666;
   width: 80%
 }
@@ -166,7 +166,7 @@ span.name {
     </form>
   </div>
 
-  <div id="listView">
+  <div id="listView" v-on:update.record="get">
     <div class="t-row t-header">
       <div class="cell idx">&nbsp;</div>
       <div class="cell language">&nbsp;</div>
@@ -191,6 +191,7 @@ span.name {
         <div class="cell desc">{{ item.description }}</div>
       </div>
       <!-- TODO: change component end -->
+      <button>Download property file</button>
     </form>
   </div>
 </div>
