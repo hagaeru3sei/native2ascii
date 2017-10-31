@@ -22,6 +22,7 @@
     "babel-register": "^6.26.0",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
+    "downloadjs": "^1.4.7",
     "gulp": "^3.9.1",
     "gulp-uglify": "^2.1.2",
     "jasmine-core": "^2.8.0",

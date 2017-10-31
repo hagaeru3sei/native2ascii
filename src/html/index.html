@@ -55,6 +55,10 @@ h1 {
   display: -moz-box;
 }
 
+#uploadForm {
+  margin: 0 auto 20px;
+}
+
 #listView {
   margin: 0 auto 120px;
   border: 1px solid #666;
@@ -127,6 +131,27 @@ span.name {
   <button id="newRecordButton"
           type="button">Add new record</button>
 
+  <div id="downloadForm">
+    <h3>Download</h3>
+    <select v-model="selectedLanguage">
+      <option v-for="language in languages" v-bind:value="language">
+        {{ language }}
+      </option>
+    </select>
+    <button v-on:click="download">Download property file</button>
+  </div>
+
+  <div id="uploadForm">
+    <h3>Upload</h3>
+    <select v-model="selectedLanguage">
+      <option v-for="language in languages" v-bind:value="language">
+        {{ language }}
+      </option>
+    </select>
+    <input @change="selectedFile" type="file" name="property_file">
+    <button v-on:click="upload" type="submit">Upload property file</button>
+  </div>
+
   <div id="newRecordForm">
     <form v-on:submit.prevent>
       <div class="wrapper">
@@ -191,7 +216,7 @@ span.name {
         <div class="cell desc">{{ item.description }}</div>
       </div>
       <!-- TODO: change component end -->
-      <button>Download property file</button>
+
     </form>
   </div>
 </div>
