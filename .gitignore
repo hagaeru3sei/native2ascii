@@ -1,7 +1,23 @@
-.*
-*.log
-!.gitignore
-!.babelrc
-node_modules
-dist
-var
+.DS_Store
+node_modules/
+dist/
+*.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+test/unit/coverage
+test/e2e/reports
+selenium-debug.log
+nohup.out
+var/db
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Vue configuration
+test/e2e/mock-template-build
