@@ -20,6 +20,8 @@ port = 8800
 host = 'localhost'
 app = Bottle()
 
+# TODO: use plugin
+# https://bottlepy.org/docs/dev/tutorial.html#route-specific-installation
 conn = sqlite3.connect('var/db/native2ascii.db', timeout=5)
 cur = conn.cursor()
 
@@ -41,8 +43,9 @@ class HttpStatus:
 
 
 class HttpResponse(object):
-    """TODO: refactoring
     """
+    """
+    # TODO: refactoring
     content_type = 'application/json'
     response_body = ''
     headers = {}
@@ -50,6 +53,7 @@ class HttpResponse(object):
     http_response = None
 
     def __init__(self, response_body, status):
+        self.headers = {}
         self.response_body = response_body
         self.status = status
         self.set_content_type(self.content_type)
@@ -197,10 +201,26 @@ def download(language) -> HTTPResponse:
     body = '\n'.join(lines)
 
     return HttpResponse(body, HttpStatus.OK)\
-        .set_content_type('text/plain')\
+        .set_content_type('text/plain; charset=utf-8')\
         .add_header('Content-Length', str(len(body)))\
-        .add_header('Content-Disposition', 'attachment; filename=message_%s.properties' % language)\
+        .add_header('Content-Disposition', 'attachment; filename="message_%s.properties"' % language) \
         .response()
+
+
+@app.route('/api/upload', method='POST')
+@app.route('/api/upload/<language>', method='POST')
+def upload(language='en') -> HTTPResponse:
+    """Upload property file
+    :return:
+    """
+    lang = request.forms.get('language')
+    upload = request.files.get('property_file')
+
+    logger.debug("lang: %s" % lang)
+    logger.debug(upload)
+    #logger.debug("filename: %s" % upload.filename)
+
+    return HttpResponse('{}', HttpStatus.OK).response()
 
 
 @app.route('/api', method='OPTIONS')
