@@ -1,11 +1,231 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>native2ascii</title>
-  </head>
-  <body>
-    <div id="app"></div>
+<!doctype html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml"
+      xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<title>native2ascii</title>
+<style type="text/css">
+html body {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif, Osaka;
+}
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+h1 {
+  padding: 10px;
+}
 
-  </body>
+#header {
+  height : 100px;
+  background-color: #666666;
+  color: #efefef;
+}
+
+#message {
+  padding-left: 10px;
+}
+
+#contents {
+  padding: 20px;
+}
+
+#newRecordButton {
+  margin-bottom: 20px;
+  padding: 10px;
+  width: 100%;
+  background: #666666;
+  color: #FFFFFF;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  font-size: 24px;
+}
+
+#newRecordForm {
+  margin: 0 auto 20px;
+  /* display: none; */
+  border: 1px #666666 solid;
+}
+#newRecordForm .wrapper {
+  display: -webkit-box;
+  display: -moz-box;
+}
+
+#uploadForm {
+  margin: 0 auto 20px;
+}
+
+#listView {
+  margin: 0 auto 120px;
+  border: 1px solid #666;
+  width: 80%
+}
+
+#footer {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-flow: wrap;
+  flex-flow: wrap;
+  -webkit-justify-content: center;
+  justify-content: center;
+  background-color: #666666;
+  color: #efefef;
+  position: fixed;
+  bottom: 0;
+  height: 60px;
+  width: 100%;
+  text-align: center;
+}
+#footer > p {
+  vertical-align: middle;
+}
+
+.addButton {
+  margin: 10px auto;
+}
+.t-row {
+  display: -webkit-flex;
+  display: flex;
+}
+.t-row:hover {
+  background-color: #eeeecc;
+  color: #336633;
+}
+.cell {
+  -webkit-justify-content: inherit;
+  justify-content:         inherit;
+  height: 20px;
+  padding: 2px;
+}
+.idx { width: 40px; }
+.desc { width: 240px; }
+.key { width: 560px; }
+.value { width: 100%; }
+.odd {
+  background-color: #fafafa;
+}
+.even {
+  background-color: #efefef;
+}
+div.t-header {
+  background-color: #cdcdcd;
+  color: #666666;
+}
+span.name {
+  width: 200px;
+}
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>native2ascii</h1>
+  <div id="message">{{ message }}</div>
+</div>
+
+<div id="contents">
+
+  <button id="newRecordButton"
+          type="button">Add new record</button>
+
+  <div id="downloadForm">
+    <h3>Download</h3>
+    <select v-model="selectedLanguage">
+      <option v-for="language in languages" v-bind:value="language">
+        {{ language }}
+      </option>
+    </select>
+    <button v-on:click="download">Download property file</button>
+  </div>
+
+  <div id="uploadForm">
+    <h3>Upload</h3>
+    <select v-model="selectedLanguage">
+      <option v-for="language in languages" v-bind:value="language">
+        {{ language }}
+      </option>
+    </select>
+    <input @change="selectedFile" type="file" name="property_file">
+    <button v-on:click="upload" type="submit">Upload property file</button>
+  </div>
+
+  <div id="newRecordForm">
+    <form v-on:submit.prevent>
+      <div class="wrapper">
+        <div v-for="(lang, index) in languages"
+             v-bind:name="['key', lang].join('_')"
+             v-bind:value="['value', lang].join('_')"
+             v-bind:description="['description', lang].join('_')"
+             v-bind:data="jsonRequest[lang]={key:'', value:'', description:''}"
+        >
+          <div :id="lang">
+            <h3>Language: {{ lang }}</h3>
+            <div>
+              <span class="name">key:</span>
+              <input :id="['key', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['key'] = $event.target.value"
+                     placeholder="key name"
+                     type="text"/>
+            </div>
+            <div>
+              <span class="name">value:</span>
+              <input :id="['value', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['value'] = $event.target.value"
+                     placeholder="value"
+                     type="text">
+            </div>
+            <div>
+              <span class="name">description:</span>
+              <input :id="['description', lang].join('_')"
+                     v-on:input="jsonRequest[lang]['description'] = $event.target.value"
+                     placeholder="description"
+                     type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="addButton"><button v-on:click="addNewRecord">Add</button></div>
+    </form>
+  </div>
+
+  <div id="listView" v-on:update.record="get">
+    <div class="t-row t-header">
+      <div class="cell idx">&nbsp;</div>
+      <div class="cell language">&nbsp;</div>
+      <div class="cell key">KEY</div>
+      <div class="cell value">VALUE</div>
+      <div class="cell desc">DESCRIPTION</div>
+      <div class="cell updated">UPDATED</div>
+    </div>
+    <form v-on:submit.prevent>
+      <!-- TODO: change component -->
+      <div
+        v-for="(item, index) in items"
+        v-bind:item="item"
+        v-bind:index="index"
+        v-bind:key="item.id"
+        v-bind:class="{ odd: index%2!=0, even: index%2==0 }"
+        class="t-row"
+      >
+        <div class="cell idx">{{ item.id }}</div>
+        <div class="cell key">{{ item.key }}</div>
+        <div class="cell value">{{ item.value }}</div>
+        <div class="cell desc">{{ item.description }}</div>
+      </div>
+      <!-- TODO: change component end -->
+
+      <!-- TODO: add vue table -->
+      <div id="app"></div>
+
+    </form>
+  </div>
+</div>
+<div id="footer">
+  <p></p>
+</div>
+<script type="text/javascript" src="./js/main.js"></script>
+</body>
 </html>

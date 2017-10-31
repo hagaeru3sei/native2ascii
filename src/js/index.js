@@ -191,8 +191,3 @@ const uploadApp = new Vue({
   }
 });
 
-export default {
-  components: {
-    Vuetable
-  }
-}
