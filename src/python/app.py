@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
+import math
 import json
 import sqlite3
 import logging
@@ -18,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 port = 8800
 host = 'localhost'
+endpoint = 'http://' + host + ':' + str(port) + '/api'
 app = Bottle()
 
 # TODO: use plugin
@@ -156,24 +158,69 @@ def lang() -> HTTPResponse:
 @app.route('/api', method='GET')
 def main() -> HTTPResponse:
     """Records example:
-    [
-      {
-        id : 1,
-        language : 'ja',
-        key : 'key1',
-        value : 'value1',
-        description : 'desc1',
-        updated : 12345
-      }
-      ,...
-    ]
+    {
+      total: 0,
+      per_page: 20,
+      current_page: 0,
+      last_page: 0,
+      prev_page_url: 'http://localhost/api?page=1'
+      next_page_url: 'http://localhost/api?page=2'
+      data: [
+        {
+          id : 1,
+          language : 'ja',
+          key : 'key1',
+          value : 'value1',
+          description : 'desc1',
+          updated : 12345
+        }
+        ,...
+      ]
+    }
     """
+    page = request.query.page
+    per_page = 15
+    if page is None or int(page) <= 0:
+        page = 1
+    else:
+        page = int(page)
+
+    offset = per_page * (page - 1)
+    limit = per_page
+
+    sql = 'SELECT count(id) FROM strings'
+    cur.execute(sql)
+    total = cur.fetchone()[0]
+    last_page = math.ceil(total/per_page)
+    url = endpoint + '?page=%d'
+
+    prev_url = ''
+    if page > 1:
+        prev_url = url % (page - 1)
+
+    next_url = ''
+    if page < last_page:
+        next_url = url % (page + 1)
+
     logger.debug("GET /api")
-    records = []
-    cur.execute('SELECT * FROM strings')
+
+    records = dict()
+    records['total'] = total
+    records['per_page'] = per_page
+    records['current_page'] = page
+    records['last_page'] = last_page
+    records['prev_page_url'] = prev_url
+    records['next_page_url'] = next_url
+    records['from'] = offset
+    records['to'] = 15
+    records['data'] = []
+
+    sql = 'SELECT * FROM strings WHERE 1=1 LIMIT %d, %d' % (offset, limit)
+    logger.debug(sql)
+    cur.execute(sql)
     row = cur.fetchone()
     while row:
-        records.append(Strings(tuple(row)).to_dict())
+        records['data'].append(Strings(tuple(row)).to_dict())
         row = cur.fetchone()
     body = json.dumps(records)
 

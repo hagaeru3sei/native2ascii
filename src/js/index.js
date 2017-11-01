@@ -1,7 +1,8 @@
-import Vue from 'vue/dist/vue.js'
+import Vue from 'vue/dist/vue'
 import axios from 'axios'
 import downloadjs from 'downloadjs'
 import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
+import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
 Vue.use(Vuetable);
 
 const msg = "Convert native2ascii for java apps";
@@ -17,6 +18,11 @@ function getLanguageCodes() {
   });
   console.log(languages);
   return languages;
+}
+
+function timestamp2datetime(timestamp) {
+  let d = new Date(timestamp);
+  return d.toISOString().replace("T", " ").replace(/\.[0-9]*Z$/, "")
 }
 
 
@@ -88,7 +94,7 @@ const formApp = new Vue({
   }
 });
 
-
+/*
 // show list view
 const viewApp = new Vue({
   el : '#listView',
@@ -117,6 +123,7 @@ const viewApp = new Vue({
     }
   }
 });
+*/
 
 // download
 const downloadApp = new Vue({
@@ -187,6 +194,88 @@ const uploadApp = new Vue({
       }).catch(e =>
         console.log("error", e)
       );
+    }
+  }
+});
+
+
+new Vue({
+  el: '#app',
+  components: {
+    'vuetable' : Vuetable,
+    'vuetable-pagination': VuetablePagination
+  },
+  data: {
+    endpoint: endpoint,
+    fields: [
+      {
+        name: 'id',
+        title: 'id',
+        sortField: 'id'
+      },
+      {
+        name: 'language',
+        title: 'Language',
+        sortField: 'language'
+      },
+      'key',
+      'value',
+      'description',
+      {
+        name: 'updated',
+        title: 'Updated',
+        sortField: 'updated',
+        callback: timestamp2datetime
+      },
+      '__slot:actions'
+    ],
+    sortOrder: [
+      { field: 'name', direction: 'asc' }
+    ],
+    css: {
+      table: {
+        tableClass: 'table table-striped table-bordered table-hovered',
+        loadingClass: 'loading',
+        ascendingIcon: 'glyphicon glyphicon-chevron-up',
+        descendingIcon: 'glyphicon glyphicon-chevron-down',
+        handleIcon: 'glyphicon glyphicon-menu-hamburger',
+      },
+      pagination: {
+        infoClass: 'pull-left',
+        wrapperClass: 'vuetable-pagination pull-right',
+        activeClass: 'btn-primary',
+        disabledClass: 'disabled',
+        pageClass: 'btn btn-border',
+        linkClass: 'btn btn-border',
+        icons: {
+          first: '',
+          prev: '',
+          next: '',
+          last: '',
+        },
+      }
+    }
+  },
+  computed: {
+  },
+  methods: {
+    onPaginationData(paginationData) {
+      this.$refs.pagination.setPaginationData(paginationData)
+    },
+    onChangePage(page) {
+      this.$refs.vuetable.changePage(page)
+    },
+    editRow(rowData) {
+      alert("You clicked edit on"+ JSON.stringify(rowData))
+    },
+    deleteRow(rowData) {
+      alert("You clicked delete on"+ JSON.stringify(rowData))
+    },
+    onLoading() {
+      console.log('loading... show your spinner here')
+    },
+    onLoaded() {
+      console.log('loaded! .. hide your spinner here')
     }
   }
 });
