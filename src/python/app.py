@@ -78,8 +78,9 @@ class HttpResponse(object):
             self.http_response.set_header(k, self.headers[k])
         if is_cors:
             self.http_response.set_header('Access-Control-Allow-Origin', '*')
+            self.http_response.set_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
             self.http_response.set_header('Access-Control-Allow-Headers', 'Content-Type')
-        logger.debug(self.headers)
+        logger.debug(self.http_response.headers)
 
         return self.http_response
 
@@ -140,6 +141,28 @@ class StringsDao(object):
         return records
 
 
+class Validator:
+
+    @staticmethod
+    def validate(record) -> bool:
+        err = 0
+        key = record['key']
+        value = record['value']
+        language = record['language']
+
+        # error check
+        if language is None or len(language) == 0:
+            err += 1
+        if key is None or len(key) == 0:
+            err += 1
+        if value is None or len(value) == 0:
+            err += 1
+
+        if err > 0:
+            return False
+        return True
+
+
 @app.route('/lang')
 def lang() -> HTTPResponse:
     """Return languages for this application.
@@ -179,8 +202,9 @@ def main() -> HTTPResponse:
     }
     """
     page = request.query.page
+    logger.debug(page is "")
     per_page = 15
-    if page is None or int(page) <= 0:
+    if page is None or page is "" or int(page) <= 0:
         page = 1
     else:
         page = int(page)
@@ -265,9 +289,9 @@ def upload(language='en') -> HTTPResponse:
 
     logger.debug("lang: %s" % lang)
     logger.debug(upload)
-    #logger.debug("filename: %s" % upload.filename)
+    logger.debug("filename: %s" % upload.filename)
 
-    return HttpResponse('{}', HttpStatus.OK).response()
+    return HttpResponse('{}', HttpStatus.OK).response(is_cors=True)
 
 
 @app.route('/api', method='OPTIONS')
@@ -282,7 +306,6 @@ def check_cors() -> HTTPResponse:
 def update() -> HTTPResponse:
     """
     """
-    err = 0
     logger.debug(request.body.getvalue())
     json_string = request.body.getvalue().decode('utf-8')
     logger.debug("JSON Request: " + json_string)
@@ -293,9 +316,9 @@ def update() -> HTTPResponse:
         logger.error(e)
         return HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response()
 
-    for lang_code in data.keys():
-        language = lang_code
+    for language in data.keys():
         record = data[language]
+        record['language'] = language
 
         key = record['key']
         value = record['value']
@@ -303,13 +326,7 @@ def update() -> HTTPResponse:
         updated = int(time.time())
 
         # error check
-        if language is None or len(language) == 0:
-            err += 1
-        if key is None or len(key) == 0:
-            err += 1
-        if value is None or len(value) == 0:
-            err += 1
-        if err > 0:
+        if Validator.validate(record) is False:
             logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
             result = '{"result":"NG"}'
             return HttpResponse(result, HttpStatus.BadRequest).response()
@@ -338,13 +355,21 @@ def update() -> HTTPResponse:
 
 @app.route("/api", method='DELETE')
 def delete() -> HTTPResponse:
-    sql = "DELETE FROM strings"
+    logger.debug('DELETE')
+    record_id = request.query.id
     try:
-        conn.execute(sql)
+        complex(record_id)
+    except ValueError as e:
+        logger.error(e)
+        HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response(is_cors=True)
+
+    sql = "DELETE FROM strings WHERE id=?"
+    try:
+        conn.execute(sql, (record_id,))
     except Exception as e:
         logger.error(e)
 
-    return HttpResponse('{"result":"OK"}', HttpStatus.OK).response()
+    return HttpResponse('{"result":"OK"}', HttpStatus.OK).response(is_cors=True)
 
 
 app.run(host=host, port=port, debug=True)

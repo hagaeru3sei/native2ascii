@@ -94,38 +94,7 @@ const formApp = new Vue({
   }
 });
 
-/*
-// show list view
-const viewApp = new Vue({
-  el : '#listView',
-  data : {
-    items: []
-  },
-  mounted: function() {
-    this.$nextTick(function () {
-      console.log("ListView mounted.");
-      this.get()
-    })
-  },
-  updated: function () {
-    this.$nextTick(function () {
-      console.log("ListView updated.")
-    })
-  },
-  methods: {
-    get: function () {
-      axios.get(endpoint).then(response => {
-        console.log(endpoint, response);
-        [].slice.call(response.data).forEach(element => {
-          this.items.push(element)
-        })
-      });
-    }
-  }
-});
-*/
-
-// download
+// download property file
 const downloadApp = new Vue({
   el: "#downloadForm",
   data: {
@@ -159,6 +128,7 @@ const uploadApp = new Vue({
   data: {
     selectedLanguage: 'en',
     languages: [],
+    language: 'en',
     file: null
   },
   mounted: function() {
@@ -176,13 +146,17 @@ const uploadApp = new Vue({
     selectedFile: function(event) {
       console.log("selectedFile");
       event.preventDefault();
-      let files = event.target.files;
+      let files = event.target.files || event.dataTransfer.files;
+      if (!files.length) {
+        return;
+      }
       this.file = files[0]
     },
     upload: function () {
       console.log("upload method called");
       let formData = new FormData();
-      formData.append('upload_file', this.file);
+      formData.append('property_file', this.file);
+      formData.append('language', this.language);
       let config = {
         headers : {
           'content-type' : 'multipart/form-data'
@@ -259,23 +233,66 @@ new Vue({
   computed: {
   },
   methods: {
+    /**
+     *
+     * @param paginationData
+     */
     onPaginationData(paginationData) {
       this.$refs.pagination.setPaginationData(paginationData)
     },
+    /**
+     *
+     * @param page
+     */
     onChangePage(page) {
       this.$refs.vuetable.changePage(page)
     },
+    /**
+     *
+     * @param rowData
+     */
     editRow(rowData) {
-      alert("You clicked edit on"+ JSON.stringify(rowData))
+      console.log("edit: "+ JSON.stringify(rowData));
+      let formData = new FormData();
+      formData.append('upload_file', this.file);
+      let config = {
+        headers : {
+          'content-type' : 'multipart/form-data'
+        }
+      };
+      axios.post(endpoint, formData, config).then(response => {
+        console.log(response)
+      }).catch(e => {
+        console.log(e)
+      })
     },
+    /**
+     *
+     * @param rowData
+     */
     deleteRow(rowData) {
-      alert("You clicked delete on"+ JSON.stringify(rowData))
+      let config = {
+        headers : {}
+      };
+      console.log("delete: "+ JSON.stringify(rowData));
+      axios.delete(endpoint + "?id=" + rowData['id'], config).then(response => {
+        console.log(response);
+        this.$refs.vuetable.reload()
+      }).catch(e => {
+        console.log(e)
+      });
     },
+    /**
+     *
+     */
     onLoading() {
-      console.log('loading... show your spinner here')
+      console.log('loading...')
     },
+    /**
+     *
+     */
     onLoaded() {
-      console.log('loaded! .. hide your spinner here')
+      console.log('loaded!')
     }
   }
 });

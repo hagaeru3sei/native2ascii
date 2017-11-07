@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <title>native2ascii</title>
+<link href="css/bootstrap.min.css" rel="stylesheet">
 <style type="text/css">
 html body {
   margin: 0;
@@ -37,7 +38,7 @@ h1 {
 #newRecordButton {
   margin-bottom: 20px;
   padding: 10px;
-  width: 100%;
+  width: 200px;
   background: #666666;
   color: #FFFFFF;
   -webkit-border-radius: 5px;
@@ -158,9 +159,10 @@ span.name {
 
 <div id="contents">
 
+  <button id="newRecordButton"
+          type="button">Add new record</button>
+
   <div id="newRecordWrapper">
-    <button id="newRecordButton"
-            type="button">Add new record</button>
     <div id="newRecordForm">
       <form v-on:submit.prevent>
         <div class="wrapper">
@@ -218,7 +220,7 @@ span.name {
         {{ language }}
       </option>
     </select>
-    <input @change="selectedFile" type="file" name="property_file">
+    <input @change="selectedFile" type="file">
     <button v-on:click="upload" type="submit">Upload property file</button>
   </div>
 
@@ -254,6 +256,8 @@ span.name {
 <div id="footer">
   <p></p>
 </div>
-<script type="text/javascript" src="./js/main.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
