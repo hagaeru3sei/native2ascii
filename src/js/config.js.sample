@@ -1,0 +1,4 @@
+module.exports = {
+  languageEndpoint: 'http://localhost:8800/lang',
+  endpoint: 'http://localhost:8800/api'
+};

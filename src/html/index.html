@@ -226,7 +226,7 @@ span.name {
 
   <div id="app">
     <vuetable ref="vuetable"
-              api-url="http://localhost:8800/api"
+              :api-url="endpoint"
               :fields="fields"
               :sort-order="sortOrder"
               :css="css.table"

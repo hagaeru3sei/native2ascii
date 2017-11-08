@@ -12,16 +12,20 @@ from bottle import Bottle, HTTPResponse, request
 # TODO: refactoring
 
 config = ConfigParser()
-config.read('src/res/default.ini')
+config.read('src/res/settings.ini')
+
 logging.basicConfig(
     level=eval(config['logging']['level']),
     format=config['logging']['format'],
     filename=config['logging']['path'])
 logger = logging.getLogger(__name__)
+
 table_name = config['database']['tableName']
-port = 8800
-host = 'localhost'
-endpoint = 'http://' + host + ':' + str(port) + '/api'
+
+port = config['server']['port']
+host = config['server']['host']
+endpoint = config['server']['endpoint']
+
 app = Bottle()
 
 # TODO: use plugin

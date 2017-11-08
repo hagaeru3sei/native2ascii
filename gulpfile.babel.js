@@ -13,8 +13,9 @@ gulp.task('build', () => {
     browserify(filename).bundle()
   });
   // Build JS
-  browserify('src/js/index.js')
-    .bundle()
+  browserify('src/js/index.js', {
+    paths: ['node_modules', 'src/js']
+  }).bundle()
     .pipe(source('main.js'))
     .pipe(gulp.dest('./dist/js'));
   // Copy HTML

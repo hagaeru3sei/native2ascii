@@ -3,12 +3,12 @@ import axios from 'axios'
 import downloadjs from 'downloadjs'
 import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
 import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
+import config from 'config'
 Vue.use(Vuetable);
 
 const msg = "Convert native2ascii for java apps";
-const languageEndpoint = 'http://localhost:8800/lang';
-const endpoint = 'http://localhost:8800/api';
-
+const languageEndpoint = config.languageEndpoint;
+const endpoint = config.endpoint;
 
 function getLanguageCodes() {
   let languages = [];

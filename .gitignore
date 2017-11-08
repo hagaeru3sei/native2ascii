@@ -1,5 +1,7 @@
 .*
 *.log
+src/res/settings.ini
+src/js/config.js
 node_modules/
 dist/*.html
 dist/nohup.out
