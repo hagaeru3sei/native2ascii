@@ -5,6 +5,7 @@ import math
 import json
 import sqlite3
 import logging
+import re
 from configparser import ConfigParser
 from bottle import Bottle, HTTPResponse, request
 
@@ -17,6 +18,7 @@ logging.basicConfig(
     format=config['logging']['format'],
     filename=config['logging']['path'])
 logger = logging.getLogger(__name__)
+table_name = config['database']['tableName']
 port = 8800
 host = 'localhost'
 endpoint = 'http://' + host + ':' + str(port) + '/api'
@@ -29,6 +31,7 @@ cur = conn.cursor()
 
 
 class HttpStatus:
+
     # Success
     OK = 200
 
@@ -113,13 +116,19 @@ class StringConverter:
     """
     @staticmethod
     def ascii2native(args) -> str:
-        """"""
+        """Ascii to Native code
+        :param args:
+        :return:
+        """
         logger.debug("ascii2native")
         return bytes(args, 'utf-8').decode('unicode_escape')
 
     @staticmethod
     def native2ascii(args) -> str:
-        """"""
+        """Native to Ascii code
+        :param args:
+        :return:
+        """
         logger.debug("native2ascii")
         return bytes(args, 'unicode_escape').decode('utf-8')
 
@@ -132,6 +141,9 @@ class StringsDao(object):
         pass
 
     def find_all(self) -> []:
+        """Return all records
+        :return: list
+        """
         records = []
         cur.execute('SELECT * FROM %s' % self.table_name)
         row = cur.fetchone()
@@ -145,6 +157,10 @@ class Validator:
 
     @staticmethod
     def validate(record) -> bool:
+        """Validate http request
+        :param record:
+        :return:
+        """
         err = 0
         key = record['key']
         value = record['value']
@@ -180,7 +196,8 @@ def lang() -> HTTPResponse:
 
 @app.route('/api', method='GET')
 def main() -> HTTPResponse:
-    """Records example:
+    """Return records
+    Records example:
     {
       total: 0,
       per_page: 20,
@@ -200,6 +217,7 @@ def main() -> HTTPResponse:
         ,...
       ]
     }
+    :return: HTTPResponse
     """
     page = request.query.page
     logger.debug(page is "")
@@ -280,16 +298,59 @@ def download(language) -> HTTPResponse:
 
 @app.route('/api/upload', method='POST')
 @app.route('/api/upload/<language>', method='POST')
-def upload(language='en') -> HTTPResponse:
+def upload(language) -> HTTPResponse:
     """Upload property file
     :return:
     """
-    lang = request.forms.get('language')
-    upload = request.files.get('property_file')
+    logger.debug("UPDATE")
+    uploaded_file = request.files.get('property_file')
 
-    logger.debug("lang: %s" % lang)
-    logger.debug(upload)
-    logger.debug("filename: %s" % upload.filename)
+    logger.debug(uploaded_file)
+    logger.debug("filename: %s" % uploaded_file.filename)
+    logger.debug(dir(uploaded_file.file).__str__())
+
+    m = re.match("^message_([a-z]+).properties$", uploaded_file.filename)
+    if m is not None:
+        language = m.group(1)
+    logger.debug("lang: %s" % language)
+
+    patt = re.compile("^[^=]+=.+$")
+
+    cur.executescript("BEGIN TRANSACTION")
+
+    line = uploaded_file.file.readline()
+    while line:
+        line = line.decode('utf-8')
+        logger.debug(line)
+
+        match = patt.match(line)
+        if match is None:
+            line = uploaded_file.file.readline()
+            continue
+        logger.debug(match)
+
+        key, value = line.split('=', 1)
+        value = StringConverter.ascii2native(value[:-1])
+        updated = int(time.time())
+
+        logger.debug(key + "=" + value)
+
+        q = "SELECT COUNT(id) FROM strings WHERE language=? AND key=?"
+        cur.execute(q, (language, key,))
+        count = cur.fetchone()[0]
+        if count == 0:
+            sql = "INSERT INTO strings (language, key, value, updated) VALUES (?, ?, ?, ?)"
+            cur.execute(sql, (language, key, value, updated))
+        else:
+            sql = "UPDATE strings SET value=?, updated=? WHERE language=? AND key=?"
+            cur.execute(sql, (value, updated, language, key))
+        line = uploaded_file.file.readline()
+
+    try:
+        conn.commit()
+    except Exception as e:
+        logger.error(e)
+        return HttpResponse('{}', HttpStatus.InternalServerError).response(is_cors=True)
 
     return HttpResponse('{}', HttpStatus.OK).response(is_cors=True)
 
@@ -304,7 +365,8 @@ def check_cors() -> HTTPResponse:
 
 @app.route('/api', method='POST')
 def update() -> HTTPResponse:
-    """
+    """Update record
+    :return: HTTPResponse
     """
     logger.debug(request.body.getvalue())
     json_string = request.body.getvalue().decode('utf-8')
@@ -355,6 +417,9 @@ def update() -> HTTPResponse:
 
 @app.route("/api", method='DELETE')
 def delete() -> HTTPResponse:
+    """Delete request id
+    :return: HTTPResponse
+    """
     logger.debug('DELETE')
     record_id = request.query.id
     try:
@@ -364,8 +429,9 @@ def delete() -> HTTPResponse:
         HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response(is_cors=True)
 
     sql = "DELETE FROM strings WHERE id=?"
+    cur.execute(sql, (record_id,))
     try:
-        conn.execute(sql, (record_id,))
+        conn.commit()
     except Exception as e:
         logger.error(e)
 
