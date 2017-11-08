@@ -21,7 +21,7 @@ function getLanguageCodes() {
 }
 
 function timestamp2datetime(timestamp) {
-  let d = new Date(timestamp);
+  let d = new Date(timestamp * 1000);
   return d.toISOString().replace("T", " ").replace(/\.[0-9]*Z$/, "")
 }
 
