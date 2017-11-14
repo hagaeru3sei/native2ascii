@@ -4,6 +4,24 @@
 
 Property file management tool
 
+### Setup
+
+Install node libraries and python3 bottle
+
+```
+cd $projectRoot
+npm install
+pip3 install bottle
+```
+
+### Configuration
+
+For Python API
+- src/res/default.ini
+
+For js client
+- src/js/config.js.sample
+
 ### Build
 
 ```
