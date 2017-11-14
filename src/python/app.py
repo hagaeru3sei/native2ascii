@@ -382,6 +382,8 @@ def update() -> HTTPResponse:
         logger.error(e)
         return HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response()
 
+    cur.executescript("BEGIN TRANSACTION")
+
     for language in data.keys():
         record = data[language]
         record['language'] = language
@@ -401,12 +403,15 @@ def update() -> HTTPResponse:
             description = ''
 
         # save database
-        cur.executescript("BEGIN TRANSACTION")
-        sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
-        try:
+        q = "SELECT COUNT(id) FROM strings WHERE language=? AND key=?"
+        cur.execute(q, (language, key,))
+        count = cur.fetchone()[0]
+        if count == 0:
+            sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
             cur.execute(sql, (language, key, value, description, updated))
-        except Exception as e:
-            logger.error(e)
+        else:
+            sql = 'UPDATE %s SET value=?, updated=? WHERE language=? AND key=?' % table_name
+            cur.execute(sql, (value, updated, language, key))
 
     try:
         conn.commit()
