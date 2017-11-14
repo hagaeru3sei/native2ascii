@@ -33,7 +33,6 @@ new Vue({
   }
 }).$mount('#message');
 
-
 // Set languages
 const formApp = new Vue({
   el: '#newRecordForm',
@@ -172,7 +171,49 @@ const uploadApp = new Vue({
   }
 });
 
+// controller
+new Vue({
+  el : '#controlPanel',
+  data : {
 
+  },
+  components : {
+    'add-component' : formApp,
+    'download-component' : downloadApp,
+    'upload-component' : uploadApp
+  },
+  methods : {
+    /**
+     *
+     * @param componentName
+     * @param type (none|block)
+     */
+    changeDisplay: function(componentName, type) {
+      let component = this.$options.components[componentName];
+      //console.log(component);
+      if (typeof component === 'undefined') return;
+      let style = component.$el.style;
+      style.display = type;
+    },
+    add : function () {
+      this.changeDisplay('add-component', 'block');
+      this.changeDisplay('upload-component', 'none');
+      this.changeDisplay('download-component', 'none');
+    },
+    upload : function () {
+      this.changeDisplay('add-component', 'none');
+      this.changeDisplay('upload-component', 'block');
+      this.changeDisplay('download-component', 'none');
+    },
+    download : function () {
+      this.changeDisplay('add-component', 'none');
+      this.changeDisplay('upload-component', 'none');
+      this.changeDisplay('download-component', 'block');
+    }
+  }
+});
+
+// vuetable-2
 new Vue({
   el: '#app',
   components: {
@@ -254,12 +295,6 @@ new Vue({
     editRow(rowData) {
       console.log("edit: "+ JSON.stringify(rowData));
       let formData = new FormData();
-      formData.append('upload_file', this.file);
-      let config = {
-        headers : {
-          'content-type' : 'multipart/form-data'
-        }
-      };
       axios.post(endpoint, formData, config).then(response => {
         console.log(response)
       }).catch(e => {
