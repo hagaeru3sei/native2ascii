@@ -370,6 +370,14 @@ def check_cors() -> HTTPResponse:
 @app.route('/api', method='POST')
 def update() -> HTTPResponse:
     """Update record
+    Request JSON example:
+    {
+      'en' : {
+        'key' : '',
+        'value' : '',
+        'description' : '',
+      },,,
+    }
     :return: HTTPResponse
     """
     logger.debug(request.body.getvalue())
