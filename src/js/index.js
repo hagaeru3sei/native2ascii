@@ -238,9 +238,8 @@ const editTable = new Vue({
       axios.post(endpoint, items).then(response => {
         console.log(response);
         this.$el.style.display = 'none';
-        // TODO: refactor using emitter
-        //bus.$emit('reload-table')
-        this.$options.methods.reload();
+        // emit reload
+        bus.$emit('reload-table')
       }).catch(e => {
         console.log(e);
         this.$el.style.display = 'none';
@@ -336,11 +335,10 @@ new Vue({
       component.key = rowData.key;
       component.value = rowData.value;
       component.description = rowData.description;
-      // TODO: refactor using emitter
       let v = this.$refs.vuetable;
-      component.$options.methods['reload'] = function() {
-        v.reload();
-      };
+      bus.$on('reload-table', function() {
+        v.reload()
+      });
       console.log("editTable component:", component);
       component.$el.style.display = '-webkit-flex';
       component.$el.style.display = 'flex';
