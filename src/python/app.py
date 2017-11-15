@@ -390,7 +390,7 @@ def update() -> HTTPResponse:
         logger.error(e)
         return HttpResponse('{"result":"NG"}', HttpStatus.BadRequest).response()
 
-    cur.executescript("BEGIN TRANSACTION")
+    #cur.executescript("BEGIN TRANSACTION")
 
     for language in data.keys():
         record = data[language]
@@ -418,8 +418,9 @@ def update() -> HTTPResponse:
             sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
             cur.execute(sql, (language, key, value, description, updated))
         else:
-            sql = 'UPDATE %s SET value=?, updated=? WHERE language=? AND key=?' % table_name
-            cur.execute(sql, (value, updated, language, key))
+            sql = 'UPDATE %s SET value=?, description=?, updated=? WHERE language=? AND key=?' % table_name
+            cur.execute(sql, (value, description, updated, language, key))
+        logger.debug(sql)
 
     try:
         conn.commit()

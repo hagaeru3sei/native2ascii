@@ -52,14 +52,10 @@ h1 {
 }
 
 #downloadForm {
+  margin: 0 auto 20px;
   display: none;
 }
 
-#listView {
-  margin: 0 auto 120px;
-  border: 1px solid #666;
-  width: 80%
-}
 
 /** Vuetable styles
  */
@@ -104,6 +100,48 @@ th.sortable {
   font-size: 20px;
 }
 
+/** edit table */
+#editTable {
+  display: none;
+  margin: auto;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+}
+#editTable > table {
+  width: 600px;
+  height: 360px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid #666666;
+  text-align: center;
+}
+#editTable > table th {
+  text-align: center;
+}
+#editTable > table td {
+  /* border: 1px solid #2c3e50; */
+  padding: 4px;
+}
+#editTable > table td.left-cell {
+  width: 100px;
+  text-align: right;
+}
+#editTable > table td.right-cell {
+  width: 496px;
+  text-align: left;
+}
+#editTable > table td.right-cell input {
+  width: 100%;
+}
+
+
 #footer {
   display: -webkit-flex;
   display: flex;
@@ -126,36 +164,6 @@ th.sortable {
 .addButton {
   margin: 10px auto;
 }
-/*
-.t-row {
-  display: -webkit-flex;
-  display: flex;
-}
-.t-row:hover {
-  background-color: #eeeecc;
-  color: #336633;
-}
-.cell {
-  -webkit-justify-content: inherit;
-  justify-content:         inherit;
-  height: 20px;
-  padding: 2px;
-}
-.idx { width: 40px; }
-.desc { width: 240px; }
-.key { width: 560px; }
-.value { width: 100%; }
-.odd {
-  background-color: #fafafa;
-}
-.even {
-  background-color: #efefef;
-}
-div.t-header {
-  background-color: #cdcdcd;
-  color: #666666;
-}
-*/
 span.name {
   width: 200px;
 }
@@ -242,6 +250,36 @@ span.name {
     </select>
     <input @change="selectedFile" type="file">
     <button v-on:click="upload" type="submit">Upload property file</button>
+  </div>
+
+  <div id="editTable">
+    <table>
+      <tr>
+        <th colspan="2">Edit record</th>
+      </tr>
+      <tr>
+        <td class="left-cell">language:</td>
+        <td class="right-cell"><input v-model="language"></td>
+      </tr>
+      <tr>
+        <td class="left-cell">key:</td>
+        <td class="right-cell"><input v-model="key"></td>
+      </tr>
+      <tr>
+        <td class="left-cell">value:</td>
+        <td class="right-cell"><input v-model="value"></td>
+      </tr>
+      <tr>
+        <td class="left-cell">description:</td>
+        <td class="right-cell"><input v-model="description"></td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <button class="btn btn-success btn-lg" @click="update">Update</button>
+          <button class="btn btn-default btn-lg" @click="cancel">Cancel</button>
+        </td>
+      </tr>
+    </table>
   </div>
 
   <div id="app">

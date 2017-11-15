@@ -9,6 +9,7 @@ Vue.use(Vuetable);
 const msg = "Convert native2ascii for java apps";
 const languageEndpoint = config.languageEndpoint;
 const endpoint = config.endpoint;
+const bus = new Vue();
 
 function getLanguageCodes() {
   let languages = [];
@@ -32,6 +33,7 @@ new Vue({
     message: msg
   }
 }).$mount('#message');
+
 
 // Set languages
 const formApp = new Vue({
@@ -213,12 +215,47 @@ new Vue({
   }
 });
 
+// Edit record
+const editTable = new Vue({
+  el : '#editTable',
+  data: {
+    language : '',
+    key : '',
+    value : '',
+    description : ''
+  },
+  methods : {
+    cancel() {
+      this.$el.style.display = 'none';
+    },
+    update : function () {
+      let items = {};
+      items[this.language] = {
+        key: this.key,
+        value: this.value,
+        description: this.description
+      };
+      axios.post(endpoint, items).then(response => {
+        console.log(response);
+        this.$el.style.display = 'none';
+        // TODO: refactor using emitter
+        //bus.$emit('reload-table')
+        this.$options.methods.reload();
+      }).catch(e => {
+        console.log(e);
+        this.$el.style.display = 'none';
+      });
+    }
+  }
+});
+
 // vuetable-2
 new Vue({
   el: '#app',
   components: {
     'vuetable' : Vuetable,
-    'vuetable-pagination': VuetablePagination
+    'vuetable-pagination': VuetablePagination,
+    'edit-table' : editTable
   },
   data: {
     endpoint: endpoint,
@@ -294,12 +331,19 @@ new Vue({
      */
     editRow(rowData) {
       console.log("edit: "+ JSON.stringify(rowData));
-      let formData = new FormData();
-      axios.post(endpoint, formData, config).then(response => {
-        console.log(response)
-      }).catch(e => {
-        console.log(e)
-      })
+      let component = this.$options.components['edit-table'];
+      component.language = rowData.language;
+      component.key = rowData.key;
+      component.value = rowData.value;
+      component.description = rowData.description;
+      // TODO: refactor using emitter
+      let v = this.$refs.vuetable;
+      component.$options.methods['reload'] = function() {
+        v.reload();
+      };
+      console.log("editTable component:", component);
+      component.$el.style.display = '-webkit-flex';
+      component.$el.style.display = 'flex';
     },
     /**
      *
@@ -316,6 +360,13 @@ new Vue({
       }).catch(e => {
         console.log(e)
       });
+    },
+    /**
+     *
+     */
+    reloadTable() {
+      console.log("reload table");
+      this.$refs.vuetable.reload();
     },
     /**
      *
