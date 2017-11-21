@@ -307,8 +307,6 @@ new Vue({
       }
     }
   },
-  computed: {
-  },
   methods: {
     /**
      *
@@ -335,10 +333,6 @@ new Vue({
       component.key = rowData.key;
       component.value = rowData.value;
       component.description = rowData.description;
-      let v = this.$refs.vuetable;
-      bus.$on('reload-table', function() {
-        v.reload()
-      });
       console.log("editTable component:", component);
       component.$el.style.display = '-webkit-flex';
       component.$el.style.display = 'flex';
@@ -378,5 +372,12 @@ new Vue({
     onLoaded() {
       console.log('loaded!')
     }
+  },
+  mounted: function() {
+    console.log("mounted");
+    let v = this.$refs.vuetable;
+    bus.$on('reload-table', function() {
+      v.reload()
+    });
   }
 });
