@@ -195,7 +195,6 @@ new Vue({
      */
     changeDisplay: function(componentName, type) {
       let component = this.$options.components[componentName];
-      //console.log(component);
       if (typeof component === 'undefined') return;
       let style = component.$el.style;
       style.display = type;
@@ -251,6 +250,30 @@ const editTable = new Vue({
   }
 });
 
+const deleteDialog = new Vue({
+  el: '#deleteDialog',
+  data: {
+    id : '',
+    key : '',
+    value : '',
+    description : ''
+  },
+  methods: {
+    cancel() {
+      this.$el.style.display = 'none';
+    },
+    deleteRow() {
+      axios.delete(endpoint + "?id=" + this.id, config).then(response => {
+        console.log(response);
+        this.$el.style.display = 'none';
+        bus.$emit('reload-table')
+      }).catch(e => {
+        console.log(e)
+      });
+    }
+  }
+});
+
 const searchForm = new Vue({
   el: "#searchForm",
   data () {
@@ -276,7 +299,8 @@ new Vue({
   components: {
     'vuetable' : Vuetable,
     'vuetable-pagination': VuetablePagination,
-    'edit-table' : editTable
+    'edit-table' : editTable,
+    'delete-dialog' : deleteDialog
   },
   data: {
     endpoint: endpoint,
@@ -352,7 +376,7 @@ new Vue({
       this.$refs.vuetable.changePage(page)
     },
     /**
-     *
+     * on update action
      * @param rowData
      */
     editRow(rowData) {
@@ -362,25 +386,23 @@ new Vue({
       component.key = rowData.key;
       component.value = rowData.value;
       component.description = rowData.description;
-      console.log("editTable component:", component);
       component.$el.style.display = '-webkit-flex';
       component.$el.style.display = 'flex';
     },
     /**
-     *
+     * on delete action.
      * @param rowData
      */
     deleteRow(rowData) {
-      let config = {
-        headers : {}
-      };
       console.log("delete: "+ JSON.stringify(rowData));
-      axios.delete(endpoint + "?id=" + rowData['id'], config).then(response => {
-        console.log(response);
-        this.$refs.vuetable.reload()
-      }).catch(e => {
-        console.log(e)
-      });
+      let component = this.$options.components['delete-dialog'];
+      component.id = rowData.id;
+      component.key = rowData.key;
+      component.value = rowData.value;
+      component.description = rowData.description;
+      console.log(component);
+      component.$el.style.display = '-webkit-flex';
+      component.$el.style.display = 'flex';
     },
     /**
      *

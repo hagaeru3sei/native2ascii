@@ -143,6 +143,34 @@ th.sortable {
   width: 100%;
 }
 
+#deleteDialog {
+  display: none;
+  margin: auto;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+}
+#deleteDialog > div {
+  padding: 20px;
+  width: 300px;
+  height: 200px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid #666666;
+  text-align: center;
+}
+#deleteDialog div.items {
+  text-align: left;
+}
+#deleteDialog div.buttons {
+  padding-top: 20px;
+}
 
 #footer {
   display: -webkit-flex;
@@ -284,6 +312,20 @@ span.name {
     </table>
   </div>
 
+  <div id="deleteDialog">
+    <div>
+      <p>このデータを削除しますか</p>
+      <div class="items">
+        <div>key: {{ key }}</div>
+        <div>value: {{ value }}</div>
+        <div>description: {{ description }}</div>
+      </div>
+      <div class="buttons">
+        <button class="btn btn-danger btn-lg" @click="deleteRow">Delete</button>
+        <button class="btn btn-default btn-lg" @click="cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <div id="searchForm">
     <div class="filter-bar ui basic segment grid">
@@ -300,11 +342,11 @@ span.name {
 
   <div id="app">
     <vuetable ref="vuetable"
+              pagination-path=""
               :api-url="endpoint"
               :fields="fields"
               :sort-order="sortOrder"
               :css="css.table"
-              pagination-path=""
               :per-page="15"
               :append-params="moreParams"
               @vuetable:pagination-data="onPaginationData"
