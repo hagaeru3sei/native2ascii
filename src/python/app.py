@@ -238,7 +238,6 @@ def main() -> HTTPResponse:
         column, sort_order = order_param.split('|')
         order_by = 'ORDER BY %s %s' % (column, sort_order, )
 
-
     page = request.query.page
     logger.debug(page is "")
     per_page = 15
