@@ -223,6 +223,22 @@ def main() -> HTTPResponse:
     }
     :return: HTTPResponse
     """
+    logger.debug("GET /api")
+
+    filter_param = request.query.filter
+    where = ''
+    if filter_param is not None and filter_param is not "":
+        where = """AND (key LIKE '%%%s%%' OR value LIKE '%%%s%%' OR description LIKE '%%%s%%')
+                """ % (filter_param, filter_param, filter_param)
+        logger.debug(where)
+
+    order_param = request.query.sort
+    order_by = ''
+    if order_param is not None and order_param is not "":
+        column, sort_order = order_param.split('|')
+        order_by = 'ORDER BY %s %s' % (column, sort_order, )
+
+
     page = request.query.page
     logger.debug(page is "")
     per_page = 15
@@ -234,7 +250,7 @@ def main() -> HTTPResponse:
     offset = per_page * (page - 1)
     limit = per_page
 
-    sql = 'SELECT count(id) FROM strings'
+    sql = 'SELECT count(id) FROM strings WHERE 1=1 %s' % (where, )
     cur.execute(sql)
     total = cur.fetchone()[0]
     last_page = math.ceil(total/per_page)
@@ -248,8 +264,6 @@ def main() -> HTTPResponse:
     if page < last_page:
         next_url = url % (page + 1)
 
-    logger.debug("GET /api")
-
     records = dict()
     records['total'] = total
     records['per_page'] = per_page
@@ -261,7 +275,8 @@ def main() -> HTTPResponse:
     records['to'] = 15
     records['data'] = []
 
-    sql = 'SELECT * FROM strings WHERE 1=1 LIMIT %d, %d' % (offset, limit)
+    sql = 'SELECT * FROM strings WHERE 1=1 %s %s LIMIT %d, %d' \
+          % (where, order_by, offset, limit)
     logger.debug(sql)
     cur.execute(sql)
     row = cur.fetchone()

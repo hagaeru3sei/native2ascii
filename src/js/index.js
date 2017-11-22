@@ -3,8 +3,11 @@ import axios from 'axios'
 import downloadjs from 'downloadjs'
 import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
 import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
+import VueEvents from 'vue-events'
 import config from 'config'
+
 Vue.use(Vuetable);
+Vue.use(VueEvents);
 
 const msg = "Convert native2ascii for java apps";
 const languageEndpoint = config.languageEndpoint;
@@ -248,6 +251,25 @@ const editTable = new Vue({
   }
 });
 
+const searchForm = new Vue({
+  el: "#searchForm",
+  data () {
+    return {
+      filterText: ''
+    }
+  },
+  methods: {
+    doFilter() {
+      console.log("doFilter", this.filterText);
+      this.$events.fire('filter-set', this.filterText)
+    },
+    resetFilter() {
+      this.filterText = '';
+      console.log('resetFilter')
+    }
+  }
+});
+
 // vuetable-2
 new Vue({
   el: '#app',
@@ -269,7 +291,11 @@ new Vue({
         title: 'Language',
         sortField: 'language'
       },
-      'key',
+      {
+        name: 'key',
+        title: 'key',
+        sortField: 'key'
+      },
       'value',
       'description',
       {
@@ -281,8 +307,11 @@ new Vue({
       '__slot:actions'
     ],
     sortOrder: [
-      { field: 'name', direction: 'asc' }
+      { field: 'id', direction: 'asc' }
     ],
+    moreParams: {
+
+    },
     css: {
       table: {
         tableClass: 'table table-striped table-bordered table-hovered',
@@ -371,13 +400,28 @@ new Vue({
      */
     onLoaded() {
       console.log('loaded!')
+    },
+    /**
+     *
+     * @param filterText
+     */
+    onFilterSet(filterText) {
+      console.log('onFilterSet', filterText, this);
+      this.moreParams = {
+        'filter': filterText
+      };
+      Vue.nextTick(() => this.$refs.vuetable.refresh())
     }
   },
   mounted: function() {
     console.log("mounted");
+    // reload event
     let v = this.$refs.vuetable;
     bus.$on('reload-table', function() {
       v.reload()
     });
+
+    // filter event
+    this.$events.$on('filter-set', eventData => this.onFilterSet(eventData))
   }
 });

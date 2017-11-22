@@ -18,7 +18,9 @@ h1, h2, h3, h4, h5 {
   border: 0;
 }
 h1 {
-  padding: 10px;
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-bottom: 10px;
 }
 
 #header {
@@ -28,7 +30,7 @@ h1 {
 }
 
 #message {
-  padding-left: 10px;
+  padding-left: 20px;
 }
 
 #contents {
@@ -282,6 +284,20 @@ span.name {
     </table>
   </div>
 
+
+  <div id="searchForm">
+    <div class="filter-bar ui basic segment grid">
+      <div class="ui form">
+        <div class="inline field">
+          <label>Search for:</label>
+          <input type="text" v-model="filterText" class="three wide column" @keyup.enter="doFilter" placeholder="name, nickname, or email">
+          <button class="ui primary button" @click="doFilter">Go</button>
+          <button class="ui button" @click="resetFilter">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <vuetable ref="vuetable"
               :api-url="endpoint"
@@ -290,6 +306,7 @@ span.name {
               :css="css.table"
               pagination-path=""
               :per-page="15"
+              :append-params="moreParams"
               @vuetable:pagination-data="onPaginationData"
               @vuetable:loading="onLoading"
               @vuetable:loaded="onLoaded"
