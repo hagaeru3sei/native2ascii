@@ -198,6 +198,22 @@ def lang() -> HTTPResponse:
     return HttpResponse(body, HttpStatus.OK).response()
 
 
+@app.route('/categories')
+def categories() -> HTTPResponse:
+    """Return categories
+    Please check the res/default.ini [categories] section.
+    example
+      { 'categories': ['none', 'default'] }
+    none is default value in db.strings table.
+    :return: HTTPResponse
+    """
+    values = config['categories']['values']
+    languages = values.split(',')
+    body = json.dumps({'categories': languages})
+
+    return HttpResponse(body, HttpStatus.OK).response()
+
+
 @app.route('/api', method='GET')
 def main() -> HTTPResponse:
     """Return records
