@@ -11,6 +11,7 @@ Vue.use(VueEvents);
 
 const msg = "Convert native2ascii for java apps";
 const languageEndpoint = config.languageEndpoint;
+const categoryEndpoint = config.categoryEndpoint;
 const endpoint = config.endpoint;
 const bus = new Vue();
 
@@ -103,7 +104,9 @@ const downloadApp = new Vue({
   el: "#downloadForm",
   data: {
     selectedLanguage: 'en',
-    languages: []
+    languages: [],
+    selectedCategory: 'none',
+    categories: []
   },
   mounted: function() {
     this.$nextTick(function () {
@@ -116,9 +119,14 @@ const downloadApp = new Vue({
         console.log("GET /lang response", res);
         this.languages = res.data.languages
       });
+      axios.get(categoryEndpoint).then(res => {
+        console.log("GET /category response", res);
+        this.categories = res.data.categories
+      });
     },
     download: function () {
-      axios.get(endpoint + "/dl/" + this.selectedLanguage).then(response => {
+      let url = endpoint + "/dl/" + this.selectedLanguage + "/" + this.selectedCategory;
+      axios.get(url).then(response => {
         console.log("response:", response);
         downloadjs(response.data, 'message_' + this.selectedLanguage + '.properties')
       })
@@ -132,7 +140,8 @@ const uploadApp = new Vue({
   data: {
     selectedLanguage: 'en',
     languages: [],
-    language: 'en',
+    selectedCategory: 'none',
+    categories: [],
     file: null
   },
   mounted: function() {
@@ -145,7 +154,15 @@ const uploadApp = new Vue({
       axios.get(languageEndpoint).then(res => {
         console.log("GET /lang response", res);
         this.languages = res.data.languages
+      }).catch(e => {
+        console.log(e)
       });
+      axios.get(categoryEndpoint).then(res => {
+        console.log("GET /categories", res);
+        this.categories = res.data.categories
+      }).catch(e => {
+        console.log(e)
+      })
     },
     selectedFile: function(event) {
       console.log("selectedFile");
@@ -160,7 +177,8 @@ const uploadApp = new Vue({
       console.log("upload method called");
       let formData = new FormData();
       formData.append('property_file', this.file);
-      formData.append('language', this.language);
+      formData.append('language', this.selectedLanguage);
+      formData.append('category', this.selectedCategory);
       let config = {
         headers : {
           'content-type' : 'multipart/form-data'
@@ -168,7 +186,8 @@ const uploadApp = new Vue({
       };
       let url = endpoint + '/upload/' + this.selectedLanguage;
       axios.post(url, formData, config).then(res => {
-        console.log("response", res)
+        console.log("response", res);
+        bus.$emit('reload-table')
       }).catch(e =>
         console.log("error", e)
       );
@@ -222,6 +241,7 @@ const editTable = new Vue({
   el : '#editTable',
   data: {
     language : '',
+    category : '',
     key : '',
     value : '',
     description : ''
@@ -232,7 +252,8 @@ const editTable = new Vue({
     },
     update : function () {
       let items = {};
-      items[this.language] = {
+      items[this.language] = {};
+      items[this.language][this.category] = {
         key: this.key,
         value: this.value,
         description: this.description
@@ -254,6 +275,8 @@ const deleteDialog = new Vue({
   el: '#deleteDialog',
   data: {
     id : '',
+    language : '',
+    category : '',
     key : '',
     value : '',
     description : ''
@@ -307,13 +330,18 @@ new Vue({
     fields: [
       {
         name: 'id',
-        title: 'id',
+        title: 'Id',
         sortField: 'id'
       },
       {
         name: 'language',
         title: 'Language',
         sortField: 'language'
+      },
+      {
+        name: 'category',
+        title: 'Category',
+        sortField: 'category'
       },
       {
         name: 'key',
@@ -383,6 +411,7 @@ new Vue({
       console.log("edit: "+ JSON.stringify(rowData));
       let component = this.$options.components['edit-table'];
       component.language = rowData.language;
+      component.category = rowData.category;
       component.key = rowData.key;
       component.value = rowData.value;
       component.description = rowData.description;

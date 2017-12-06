@@ -98,10 +98,11 @@ class Strings(object):
     def __init__(self, row):
         self.id = row[0]
         self.language = row[1]
-        self.key = row[2]
-        self.value = row[3]
-        self.description = row[4]
-        self.updated = row[5]
+        self.category = row[2]
+        self.key = row[3]
+        self.value = row[4]
+        self.description = row[5]
+        self.updated = row[6]
 
     def to_dict(self) -> {}:
         """class Strings to dict converter
@@ -109,6 +110,7 @@ class Strings(object):
         """
         return {'id': self.id,
                 'language': self.language,
+                'category': self.category,
                 'key': self.key,
                 'value': self.value,
                 'description': self.description,
@@ -169,9 +171,12 @@ class Validator:
         key = record['key']
         value = record['value']
         language = record['language']
+        category = record['category']
 
         # error check
         if language is None or len(language) == 0:
+            err += 1
+        if category is None or len(category) == 0:
             err += 1
         if key is None or len(key) == 0:
             err += 1
@@ -229,6 +234,7 @@ def main() -> HTTPResponse:
         {
           id : 1,
           language : 'ja',
+          category: 'none',
           key : 'key1',
           value : 'value1',
           description : 'desc1',
@@ -303,8 +309,8 @@ def main() -> HTTPResponse:
     return HttpResponse(body, HttpStatus.OK).response()
 
 
-@app.route('/api/dl/<language>', method='GET')
-def download(language) -> HTTPResponse:
+@app.route('/api/dl/<language>/<category>', method='GET')
+def download(language, category) -> HTTPResponse:
     """Download property file.
     :return:
     """
@@ -316,6 +322,8 @@ def download(language) -> HTTPResponse:
     lines = []
     for record in records:
         if language != record.language:
+            continue
+        if category != record.category:
             continue
         k = record.key
         v = StringConverter.native2ascii(record.value)
@@ -337,6 +345,7 @@ def upload(language) -> HTTPResponse:
     :return:
     """
     logger.debug("UPDATE")
+    category = request.forms.get('category')
     uploaded_file = request.files.get('property_file')
 
     logger.debug(uploaded_file)
@@ -369,15 +378,15 @@ def upload(language) -> HTTPResponse:
 
         logger.debug(key + "=" + value)
 
-        q = "SELECT COUNT(id) FROM strings WHERE language=? AND key=?"
-        cur.execute(q, (language, key,))
+        q = "SELECT COUNT(id) FROM strings WHERE language=? AND category=? AND key=?"
+        cur.execute(q, (language, category, key,))
         count = cur.fetchone()[0]
         if count == 0:
-            sql = "INSERT INTO strings (language, key, value, updated) VALUES (?, ?, ?, ?)"
-            cur.execute(sql, (language, key, value, updated))
+            sql = "INSERT INTO strings (language, category, key, value, updated) VALUES (?, ?, ?, ?, ?)"
+            cur.execute(sql, (language, category, key, value, updated))
         else:
-            sql = "UPDATE strings SET value=?, updated=? WHERE language=? AND key=?"
-            cur.execute(sql, (value, updated, language, key))
+            sql = "UPDATE strings SET value=?, updated=? WHERE language=? AND category=? AND key=?"
+            cur.execute(sql, (value, updated, language, category, key))
         line = uploaded_file.file.readline()
 
     try:
@@ -402,10 +411,12 @@ def update() -> HTTPResponse:
     """Update record
     Request JSON example:
     {
-      'en' : {
-        'key' : '',
-        'value' : '',
-        'description' : '',
+      'language' : {
+        'category': {
+          'key' : '',
+          'value' : '',
+          'description' : '',
+        },
       },,,
     }
     :return: HTTPResponse
@@ -423,34 +434,40 @@ def update() -> HTTPResponse:
     #cur.executescript("BEGIN TRANSACTION")
 
     for language in data.keys():
-        record = data[language]
-        record['language'] = language
+        category_with_record = data[language]
+        for category in category_with_record.keys():
+            record = category_with_record[category]
+            record['category'] = category
+            record['language'] = language
 
-        key = record['key']
-        value = record['value']
-        description = record['description']
-        updated = int(time.time())
+            category = record['category']
+            key = record['key']
+            value = record['value']
+            description = record['description']
+            updated = int(time.time())
 
-        # error check
-        if Validator.validate(record) is False:
-            logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
-            result = '{"result":"NG"}'
-            return HttpResponse(result, HttpStatus.BadRequest).response()
+            # error check
+            if Validator.validate(record) is False:
+                logger.error("Invalid request. language:%s, key:%s, value:%s" % (language, key, value,))
+                result = '{"result":"NG"}'
+                return HttpResponse(result, HttpStatus.BadRequest).response()
 
-        if description is None:
-            description = ''
+            if description is None:
+                description = ''
 
-        # save database
-        q = "SELECT COUNT(id) FROM strings WHERE language=? AND key=?"
-        cur.execute(q, (language, key,))
-        count = cur.fetchone()[0]
-        if count == 0:
-            sql = 'INSERT INTO strings (language, key, value, description, updated) VALUES (?, ?, ?, ?, ?)'
-            cur.execute(sql, (language, key, value, description, updated))
-        else:
-            sql = 'UPDATE %s SET value=?, description=?, updated=? WHERE language=? AND key=?' % table_name
-            cur.execute(sql, (value, description, updated, language, key))
-        logger.debug(sql)
+            # save database
+            q = "SELECT COUNT(id) FROM strings WHERE language=? AND category=? AND key=?"
+            cur.execute(q, (language, category, key,))
+            count = cur.fetchone()[0]
+            if count == 0:
+                sql = 'INSERT INTO strings (language, category, key, value, description, updated) ' \
+                      'VALUES (?, ?, ?, ?, ?, ?)'
+                cur.execute(sql, (language, category, key, value, description, updated))
+            else:
+                sql = 'UPDATE %s SET value=?, description=?, updated=? ' \
+                      'WHERE language=? AND category=? AND key=?' % table_name
+                cur.execute(sql, (value, description, updated, language, category, key))
+            logger.debug(sql)
 
     try:
         conn.commit()

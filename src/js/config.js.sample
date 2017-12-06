@@ -1,4 +1,5 @@
 module.exports = {
   languageEndpoint: 'http://localhost:8800/lang',
+  categoryEndpoint: 'http://localhost:8800/categories',
   endpoint: 'http://localhost:8800/api'
 };

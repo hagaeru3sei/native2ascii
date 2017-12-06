@@ -263,9 +263,14 @@ span.name {
 
   <div id="downloadForm">
     <h3>Download</h3>
-    <select v-model="selectedLanguage">
+    language:<select v-model="selectedLanguage">
       <option v-for="language in languages" v-bind:value="language">
         {{ language }}
+      </option>
+    </select>
+    category:<select v-model="selectedCategory">
+      <option v-for="category in categories" v-bind:value="category">
+        {{ category }}
       </option>
     </select>
     <button v-on:click="download">Download property file</button>
@@ -273,9 +278,14 @@ span.name {
 
   <div id="uploadForm">
     <h3>Upload</h3>
-    <select v-model="selectedLanguage">
+    language:<select v-model="selectedLanguage">
       <option v-for="language in languages" v-bind:value="language">
         {{ language }}
+      </option>
+    </select>
+    category:<select v-model="selectedCategory">
+      <option v-for="category in categories" v-bind:value="category">
+        {{ category }}
       </option>
     </select>
     <input @change="selectedFile" type="file">
@@ -290,6 +300,10 @@ span.name {
       <tr>
         <td class="left-cell">language:</td>
         <td class="right-cell"><input v-model="language"></td>
+      </tr>
+      <tr>
+        <td class="left-cell">category:</td>
+        <td class="right-cell"><input v-model="category"></td>
       </tr>
       <tr>
         <td class="left-cell">key:</td>
