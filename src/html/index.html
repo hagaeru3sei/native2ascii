@@ -243,7 +243,7 @@ span.name {
               <td class="left-cell">key:</td>
               <td class="right-cell">
                 <input :id="['key', lang].join('_')"
-                       v-bind:value="name"
+                       v-bind:value="key"
                        v-on:input="jsonRequest[lang]['key'] = $event.target.value"
                        placeholder="key"
                        type="text"/>
