@@ -234,9 +234,6 @@ span.name {
     <form v-on:submit.prevent>
       <div class="wrapper">
         <div v-for="(lang, index) in languages"
-             v-bind:name="['key', lang].join('_')"
-             v-bind:value="['value', lang].join('_')"
-             v-bind:description="['description', lang].join('_')"
              v-bind:data="jsonRequest[lang]={key:'', value:'', description:''}"
         >
           <table :id="lang">
