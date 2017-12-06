@@ -39,13 +39,21 @@ h1 {
 
 #newRecordForm {
   margin: 0 auto 20px;
+  padding: 20px;
   /* display: none; */
-  border: 1px #666666 solid;
+  border: 1px #999999 solid;
   display: none;
 }
 #newRecordForm .wrapper {
   display: -webkit-box;
   display: -moz-box;
+  margin-bottom: 10px;
+}
+#newRecordForm table td.left-cell {
+  text-align: right;
+}
+#newRecordForm table td.right-cell {
+  text-align: left;
 }
 
 #uploadForm {
@@ -231,31 +239,48 @@ span.name {
              v-bind:description="['description', lang].join('_')"
              v-bind:data="jsonRequest[lang]={key:'', value:'', description:''}"
         >
-          <div :id="lang">
-            <h3>Language: {{ lang }}</h3>
-            <div>
-              <span class="name">key:</span>
-              <input :id="['key', lang].join('_')"
-                     v-on:input="jsonRequest[lang]['key'] = $event.target.value"
-                     placeholder="key name"
-                     type="text"/>
-            </div>
-            <div>
-              <span class="name">value:</span>
-              <input :id="['value', lang].join('_')"
-                     v-on:input="jsonRequest[lang]['value'] = $event.target.value"
-                     placeholder="value"
-                     type="text">
-            </div>
-            <div>
-              <span class="name">description:</span>
-              <input :id="['description', lang].join('_')"
-                     v-on:input="jsonRequest[lang]['description'] = $event.target.value"
-                     placeholder="description"
-                     type="text">
-            </div>
-          </div>
+          <table :id="lang">
+            <tr>
+              <th colspan="2">Language: {{ lang }}</th>
+            </tr>
+              <td class="left-cell">key:</td>
+              <td class="right-cell">
+                <input :id="['key', lang].join('_')"
+                       v-bind:value="name"
+                       v-on:input="jsonRequest[lang]['key'] = $event.target.value"
+                       placeholder="key"
+                       type="text"/>
+              </td>
+            </tr>
+            <tr>
+              <td class="left-cell">value:</td>
+              <td class="right-cell">
+                <input :id="['value', lang].join('_')"
+                       v-bind:value="value"
+                       v-on:input="jsonRequest[lang]['value'] = $event.target.value"
+                       placeholder="value"
+                       type="text">
+              </td>
+            </tr>
+            <tr>
+              <td class="left-cell">description:</td>
+              <td class="right-cell">
+                <input :id="['description', lang].join('_')"
+                       v-bind:value="description"
+                       v-on:input="jsonRequest[lang]['description'] = $event.target.value"
+                       placeholder="description"
+                       type="text">
+              </td>
+            </tr>
+          </table>
         </div>
+      </div>
+      <div>
+        category:<select v-model="selectedCategory">
+          <option v-for="category in categories" v-bind:value="category">
+            {{ category }}
+          </option>
+        </select>
       </div>
       <div class="addButton"><button v-on:click="addNewRecord">Add</button></div>
     </form>

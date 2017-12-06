@@ -43,11 +43,22 @@ new Vue({
 const formApp = new Vue({
   el: '#newRecordForm',
   data: {
+    key: '',
+    value: '',
+    description: '',
+    selectedCategory : 'none',
+
     /**
      * example:
      *   ['en', 'jp']
      */
     languages: [],
+
+    /**
+     * example:
+     *   ['none', 'default']
+     */
+    categories : [],
 
     /**
      * example:
@@ -77,14 +88,19 @@ const formApp = new Vue({
         console.log(res);
         this.languages = res.data.languages
       });
+      axios.get(categoryEndpoint).then(res => {
+        console.log("GET /category response", res);
+        this.categories = res.data.categories
+      });
     },
     addNewRecord: function () {
       console.log("Called addNewRecord.");
-      console.log(this);
+      console.log(this.jsonRequest);
       let items = {};
       [].slice.call(Object.keys(this.jsonRequest)).forEach(lang => {
          let item = this.jsonRequest[lang];
-         items[lang] = {
+         items[lang] = {};
+         items[lang][this.selectedCategory] = {
            key: item.key,
            value: item.value,
            description: item.description
@@ -92,7 +108,8 @@ const formApp = new Vue({
       });
       console.log("JSON string:", JSON.stringify(items));
       axios.post(endpoint, items).then(response => {
-        console.log(response)
+        console.log(response);
+        bus.$emit('reload-table')
       });
       this.$emit('update.record', true)
     }
